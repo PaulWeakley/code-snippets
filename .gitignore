@@ -1,0 +1,20 @@
+# VS Code
+**/*.vscode
+
+# CSharp
+**/*/bin
+**/*/obj
+**/*.csproj.user
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# JavaScript
+
+# Python
+**/*.env
+**/*.venv
+**/*/__pycache__
+
+# TypeScript

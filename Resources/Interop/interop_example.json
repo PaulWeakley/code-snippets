@@ -1,0 +1,19 @@
+[
+    [
+        [
+            [null, "id", "name"], 
+            [1, 1, "John Smith"]           
+        ], 
+        [
+            [null, "city", "id", "line1", "state", "zip"], 
+            [2, "Anytown", 1, "123 Main St", "CA", "12345"], 
+            [3, "Anytown", 2, "123 Main St", "CA", "12345"]
+        ]
+    ], 
+    [
+        [
+            [null, "address", "addresses", "mailing"], 
+            [1, 2, [2, 3], 3]
+        ]
+    ]
+]
