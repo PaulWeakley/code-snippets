@@ -1,10 +1,8 @@
 import json
 import configparser
-import json
 from dotenv import load_dotenv
 import os
 import sys
-from typing import Callable
 
 # Get the directory of the current file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +32,8 @@ def lambda_handler(event, context):
     topic = None
     subject = None
     data = None
-    
+    use_interop = False
+
     if event is not None:
         if "pathParameters" in event:
             pathParameters = event["pathParameters"]
@@ -45,6 +44,11 @@ def lambda_handler(event, context):
                     subject = pathParameters["subject"]
         if "body" in event and event["body"] is not None:
             data = json.loads(event["body"])
+        if "queryStringParameters" in event and event["queryStringParameters"] is not None:
+            queryStringParameters = event["queryStringParameters"]
+            if "interop" in queryStringParameters and queryStringParameters["interop"] is not None:
+                use_interop = queryStringParameters["interop"].lower() in ['true', '1', 'yes', 'on']
+
     
     if topic is None:
         return {
@@ -59,7 +63,7 @@ def lambda_handler(event, context):
         }
     
     try:
-        producer = KafkaProducer(config=conf)
+        producer = KafkaProducer(config=conf, use_interop=use_interop)
         producer.produce_messages(topic=topic, subject=subject, messages=[data], callback=None)
         return {
             'statusCode': 204,

@@ -15,17 +15,17 @@ from cloud_event import CloudEvent
 
 
 class KafkaProducer:
-    def __init__(self, config, useInterOp=True):
+    def __init__(self, config, use_interop=True):
         self.__config = config
         self.__producer = Producer(config)
-        self.__useInterOp = useInterOp
+        self.__use_interop = use_interop
 
     # Function to produce messages to a Kafka topic
     def produce_messages(self, topic: str, subject: str, messages: list, callback: Callable[[any, any], None]=None):
         for message in messages:
             event = self.__to_cloud_event(source=self.__config['client.id'], 
                                           subject=subject, data=message, 
-                                          useInterOp=self.__useInterOp)
+                                          use_interop=self.__use_interop)
             try:
                 # Produce a message
                 self.__produce(topic=topic, subject=subject, event=event, callback=callback)
@@ -43,13 +43,13 @@ class KafkaProducer:
         key = subject.encode('utf-8') if subject is not None else None
         self.__producer.produce(topic, value=event.to_json().encode('utf-8'), key=key, callback=callback)
 
-    def __to_cloud_event(self, spec_version=None, data_type=None, source=None, subject=None, data=None, useInterOp=True):
+    def __to_cloud_event(self, spec_version=None, data_type=None, source=None, subject=None, data=None, use_interop=True):
         spec_version = spec_version if spec_version is not None else "1.0"
         data_type = data_type if data_type is not None else ""
         subject = subject if subject is not None else ""
         
         if isinstance(data, dict):
-            if useInterOp:
+            if use_interop:
                 data_content_type = "application/interop"
                 serialized_data = InteropSerializer.serialize(data)
             else:
