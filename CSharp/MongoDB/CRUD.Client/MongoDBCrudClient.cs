@@ -3,7 +3,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-public class MongoDBCrudClient
+public class MongoDBCrudClient : IMongoDBCrudClient
 {
     public MongoDBCrudClient(IMongoDBClientBuilder mongoDBClientBuilder)
     {
