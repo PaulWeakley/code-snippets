@@ -49,7 +49,7 @@ class InteropSerializer:
         # Process field values
         entity_index = -1
         for index in range(len(entities)):
-            if InteropSerializer.__arrays_match(entities[index][0], fields):
+            if InteropSerializer.__do_arrays_match(entities[index][0], fields):
                 entity_index = index
                 break
 
@@ -84,7 +84,7 @@ class InteropSerializer:
 
             relationship_index = -1
             for index in range(len(relations)):
-                if InteropSerializer.__arrays_match(relations[index][0], fields):
+                if InteropSerializer.__do_arrays_match(relations[index][0], fields):
                     relationship_index = index
                     break
 
@@ -97,7 +97,7 @@ class InteropSerializer:
         return counter
 
     @staticmethod
-    def __arrays_match(arr1, arr2):
+    def __do_arrays_match(arr1, arr2):
         if len(arr1) != len(arr2):
             return False
 
