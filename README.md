@@ -23,6 +23,9 @@ Based on https://github.com/cloudevents/spec
 | Microsoft.Extensions.Configuration.Binder           | 8.0.2 | Extension Methods for GetValue in the configuration         |
 | Microsoft.Extensions.Configuration.EnvironmentVariables           | 8.0.0 | Configuration extension to import Environment Variables         |
 | Microsoft.Extensions.Configuration.Json           | 8.0.0 | Configuration extension for the import of JSON files (e.g. appsettings.json)         |
+| Confluent.Kafka           | 2.5.3 | Confluent Kafka SDK         |
+| Microsoft.Extensions.Logging           | 8.0.0 | Microsoft Logging Extensions         |
+| Microsoft.Extensions.Logging           | 8.0.0 | Microsoft Logging Extensions for Console         |
 
 ## JavaScript
 TBD

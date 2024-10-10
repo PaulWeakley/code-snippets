@@ -14,7 +14,7 @@ using Microsoft.Extensions.Configuration.EnvironmentVariables;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace MongoDB.REST
+namespace AWS.Lambda.MongoDB.REST
 {
     public class HttpPostHandler
     {
@@ -43,16 +43,16 @@ namespace MongoDB.REST
                     Body = "Error: Missing collection_name parameter"
                 };
 
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("./appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
-
             if (string.IsNullOrEmpty(request.Body))
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 400,
                     Body = "Error: Missing body"
                 };
+
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("./appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
 
             var mongoDbSection = config.GetSection("MongoDB");
             var mongoDbServer = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? mongoDbSection.GetValue<string>("MONGODB_SERVER");

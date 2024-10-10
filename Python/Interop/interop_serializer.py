@@ -84,7 +84,7 @@ class InteropSerializer:
 
             relationship_index = -1
             for index in range(len(relations)):
-                if InteropSerializer.__do_arrays_match(relations[index][0], fields):
+                if InteropSerializer.__do_arrays_match(relations[index][0], children):
                     relationship_index = index
                     break
 

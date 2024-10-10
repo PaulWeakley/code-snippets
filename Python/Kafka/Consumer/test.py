@@ -1,17 +1,19 @@
 import sys
 import os
-from typing import Callable
+import logging
+import threading
 
 import configparser
 from dotenv import load_dotenv
+
+
 # Add the directory containing interop.py to the system path
 sys.path.append(os.path.abspath('./../../Interop/'))
 sys.path.append(os.path.abspath('./../../Kafka/'))
 
-import json
-from interop_serializer import InteropSerializer
-from cloud_event import CloudEvent
+from kafka_message import KafkaMessage
 from kafka_consumer import KafkaConsumer
+
 
 def __main__():
     # Load sensitive configuration values from config.ini
@@ -30,31 +32,23 @@ def __main__():
     'auto.offset.reset': config.get('Kafka', 'auto.offset.reset', fallback='earliest'),  # Start reading from earliest message
     'enable.auto.commit': config.get('Kafka', 'enable.auto.commit', fallback=False)       # Disable automatic offset committing
     }
+
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
     
-    consumer = KafkaConsumer(config=conf, topic='topic_0', callback=event_handler)
+    consumer = KafkaConsumer(config=conf, logger=logger)
     
-    consumer.consume_messages()
+    consumer.start_consuming_async(topic='topic_0', polling_interval=5, handler=KafkaEventHandler(logger))
+    threading.Event().wait(15)
+    consumer.stop_consuming()
 
-def event_handler(subject: str, event: CloudEvent):
-    if event is None:
-        print(f"Received message with no event data. Key: {subject}. Eventually send to dead letter queue.")
+
+class KafkaEventHandler:
+    def __init__(self, logger) -> None:
+        self.__logger = logger
+
+    def handle(self, message: KafkaMessage) -> bool:
+        self.__logger.info(f"Received message: {message}\n")
         return True
-    try:
-        if event.data is not None:
-            if event.datacontenttype == 'application/interop':
-                message_value = InteropSerializer.deserialize(event.data)
-            elif event.datacontenttype == 'application/json':
-                message_value = json.loads(event.data)
-            else:
-                message_value = event.data
-
-                    # Process the message (add your processing logic here)
-        print(f"Received message: {message_value}, Key: {subject}")
-        return True
-    except Exception as e:
-        print(f"An error occurred while processing the message: {e}")
-
-    return False
-
 
 __main__()

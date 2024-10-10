@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CRUD.Client\MongoDB.CRUD.Client.csproj" />
+    <ProjectReference Include="..\Core\Interop.Core.csproj" />
   </ItemGroup>
 
 </Project>

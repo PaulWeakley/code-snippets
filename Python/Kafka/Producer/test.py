@@ -1,6 +1,7 @@
 import configparser
 from dotenv import load_dotenv
 import os
+from json_cloud_event_builder import JsonCloudEventBuilder
 from kafka_producer import KafkaProducer
 
 def __main__():
@@ -23,7 +24,7 @@ def __main__():
     }
 
     producer = KafkaProducer(config=conf)
-    producer.produce_messages(topic='topic_0', subject='test_subject', messages=[{"key": "value"}],
+    producer.produce_messages(topic='topic_0', event_builder=JsonCloudEventBuilder(), messages=[{"key": "value"}],
                               callback=delivery_report)
 
 # Delivery report callback to confirm if the message was successfully delivered or failed

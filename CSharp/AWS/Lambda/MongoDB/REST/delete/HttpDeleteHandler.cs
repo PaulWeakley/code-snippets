@@ -14,9 +14,9 @@ using Microsoft.Extensions.Configuration.EnvironmentVariables;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace MongoDB.REST
+namespace AWS.Lambda.MongoDB.REST
 {
-    public class HttpPutHandler
+    public class HttpDeleteHandler
     {
         /// <summary>
         /// Function handler to process HTTP requests via API Gateway.
@@ -26,6 +26,7 @@ namespace MongoDB.REST
         /// <returns>API Gateway response</returns>
         public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
         {
+            // Comment to comment
             // Log the request
             context.Logger.LogLine("Received request: " + request.Body);
 
@@ -60,13 +61,8 @@ namespace MongoDB.REST
             var config = new ConfigurationBuilder()
                 .AddJsonFile("./appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
-
-            if (string.IsNullOrEmpty(request.Body))
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = 400,
-                    Body = "Error: Missing body"
-                };
+            
+            
 
             var mongoDbSection = config.GetSection("MongoDB");
             var mongoDbServer = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? mongoDbSection.GetValue<string>("MONGODB_SERVER");
@@ -83,10 +79,9 @@ namespace MongoDB.REST
 
             var mongoDBClientBuilder = new MongoDBClientBuilder(mongoDbSettings);
             
-            var document = await new MongoDBCrudClient(mongoDBClientBuilder)
-                .UpdateAsync(dbName, collectionName, objectId, BsonDocument.Parse(request.Body));
+            var result = await new MongoDBCrudClient(mongoDBClientBuilder).DeleteAsync(dbName, collectionName, objectId);
 
-            if (null == document)
+            if (!result)
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 404,
@@ -96,7 +91,7 @@ namespace MongoDB.REST
             // Return the API Gateway response
             return new APIGatewayProxyResponse {
                 StatusCode = 200,
-                Body = document.ToJson(),
+                Body = $"Document with id {id} deleted",
                 Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
             };
         }

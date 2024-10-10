@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\MongoDB\CRUD.Client\MongoDB.CRUD.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\..\MongoDB\CRUD\Client\MongoDB.CRUD.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">

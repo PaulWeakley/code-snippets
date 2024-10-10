@@ -16,7 +16,7 @@ config.read('config.ini')
 
 load_dotenv()
 
-conf = {
+producer_config = {
     'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
     'client.id': config.get('Kafka', 'client.id'),
     'security.protocol': config.get('Kafka', 'security.protocol'),
@@ -63,8 +63,8 @@ def lambda_handler(event, context):
         }
     
     try:
-        producer = KafkaProducer(config=conf, use_interop=use_interop)
-        producer.produce_messages(topic=topic, subject=subject, messages=[data], callback=None)
+        producer = KafkaProducer(config=producer_config)
+        producer.produce_messages(topic=topic, event_builder=None, messages=[data], headers=None, callback=None)
         return {
             'statusCode': 204,
         }

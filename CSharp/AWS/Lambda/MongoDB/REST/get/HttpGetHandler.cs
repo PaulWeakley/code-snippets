@@ -14,7 +14,7 @@ using Microsoft.Extensions.Configuration.EnvironmentVariables;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace MongoDB.REST
+namespace AWS.Lambda.MongoDB.REST
 {
     public class HttpGetHandler
     {
@@ -61,8 +61,6 @@ namespace MongoDB.REST
                 .AddJsonFile("./appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
             
-            
-
             var mongoDbSection = config.GetSection("MongoDB");
             var mongoDbServer = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? mongoDbSection.GetValue<string>("MONGODB_SERVER");
             var mongoDbAuthDb = Environment.GetEnvironmentVariable("MONGODB_AUTH_DB") ?? mongoDbSection.GetValue<string>("MONGODB_AUTH_DB");
