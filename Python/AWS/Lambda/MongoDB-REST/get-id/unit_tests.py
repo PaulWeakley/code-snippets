@@ -40,7 +40,7 @@ class TestLambdaHandler(unittest.TestCase):
     @patch('lambda_function.MongoDB_CRUD_Client')
     def test_valid_event(self, MockMongoDB_CRUD_Client):
         client_instance = MockMongoDB_CRUD_Client.return_value
-        client_instance.delete.return_value = True
+        client_instance.read.return_value = {'name': 'John Doe', 'email': ''}
         event = { 'pathParameters': {'db_name': 'test', 'collection_name': 'users', 'id': str(ObjectId()) } }
         
         response = lambda_handler(event, None)
@@ -50,12 +50,12 @@ class TestLambdaHandler(unittest.TestCase):
     @patch('lambda_function.MongoDB_CRUD_Client')
     def test_valid_event_not_found(self, MockMongoDB_CRUD_Client):
         client_instance = MockMongoDB_CRUD_Client.return_value
-        client_instance.read.return_value = False
+        client_instance.read.return_value = None
         event = { 'pathParameters': {'db_name': 'test', 'collection_name': 'users', 'id': str(ObjectId()) } }
         
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 404)
-        self.assertEqual(json.loads(response['body']), f'Error: Document with id {event["pathParameters"]["id"]} not found')
+        self.assertEqual(response['body'], f'Error: Document with id {event["pathParameters"]["id"]} not found')
 
 
 if __name__ == '__main__':

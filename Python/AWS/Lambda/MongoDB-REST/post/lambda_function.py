@@ -11,8 +11,10 @@ from typing import Callable
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Add the directory containing interop.py to the system path
-sys.path.append(os.path.join(current_dir, '../../../../MongoDB/'))
+sys.path.append(os.path.join(current_dir, '../../../../MongoDB/CRUD'))
+sys.path.append(os.path.join(current_dir, '../../../../MongoDB/REST'))
 from mongodb_crud_client import MongoDB_CRUD_Client
+from mongodb_rest_client import MongoDB_REST_Client
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -44,36 +46,4 @@ def lambda_handler(event, context):
         if "body" in event and event["body"] is not None:
             data = json.loads(event["body"])
     
-    if db_name is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing db_name parameter')
-        }
-    if collection_name is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing collection_name parameter')
-        }
-    if data is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing body')
-        }
-            
-    try:
-        client = MongoDB_CRUD_Client(config=mongodb_config)
-        document_id = client.create(db_name, collection_name, data)
-        if document_id is not None:
-            return {
-                'statusCode': 201,
-                'body': str(document_id)
-            }
-        return {
-            'statusCode': 500,
-            'body': 'Failed to create document'
-        }
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': str(e)
-        }
+    return MongoDB_REST_Client(mongodb_crud_client=MongoDB_CRUD_Client(mongodb_config)).post(db_name, collection_name, data)

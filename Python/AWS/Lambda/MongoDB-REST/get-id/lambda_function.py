@@ -9,8 +9,10 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Add the directory containing interop.py to the system path
-sys.path.append(os.path.join(current_dir, '../../../../MongoDB/'))
+sys.path.append(os.path.join(current_dir, '../../../../MongoDB/CRUD'))
+sys.path.append(os.path.join(current_dir, '../../../../MongoDB/REST'))
 from mongodb_crud_client import MongoDB_CRUD_Client
+from mongodb_rest_client import MongoDB_REST_Client
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -42,42 +44,4 @@ def lambda_handler(event, context):
                 if "id" in pathParameters:
                     id = pathParameters["id"]
     
-    if db_name is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing db_name parameter')
-        }
-    if collection_name is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing collection_name parameter')
-        }
-    if id is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Missing id parameter')
-        }
-    elif not ObjectId.is_valid(id):
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Invalid id')
-        }
-            
-    try:
-        client = MongoDB_CRUD_Client(config=mongodb_config)
-        document = client.read(db_name, collection_name, ObjectId(id))
-        if document is not None:
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps(document, default=str)
-            }
-        return {
-            'statusCode': 404,
-            'body': f'Error: Document with id {id} not found'
-        }
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': str(e)
-        }
+    return MongoDB_REST_Client(mongodb_crud_client=MongoDB_CRUD_Client(mongodb_config)).get(db_name, collection_name, id)

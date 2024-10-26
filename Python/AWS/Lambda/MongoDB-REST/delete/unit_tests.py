@@ -41,21 +41,21 @@ class TestLambdaHandler(unittest.TestCase):
     def test_valid_event(self, MockMongoDB_CRUD_Client):
         client_instance = MockMongoDB_CRUD_Client.return_value
         document_id = str(ObjectId())
-        client_instance.read.return_value = f'Document with id {document_id} deleted'
+        client_instance.delete.return_value = True
         event = { 'pathParameters': {'db_name': 'test', 'collection_name': 'users', 'id': document_id } }
         
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 200)
-        self.assertEqual(json.loads(response['body']), f'Document with id {event["pathParameters"]["id"]} deleted')
+        self.assertEqual(response['body'], f'Document with id {event["pathParameters"]["id"]} deleted')
 
     @patch('lambda_function.MongoDB_CRUD_Client')
     def test_valid_event_not_found(self, MockMongoDB_CRUD_Client):
         client_instance = MockMongoDB_CRUD_Client.return_value
-        client_instance.read.return_value = None
+        client_instance.delete.return_value = False
         event = { 'pathParameters': {'db_name': 'test', 'collection_name': 'users', 'id': str(ObjectId()) } }
         response = lambda_handler(event, None)
         self.assertEqual(response['statusCode'], 404)
-        self.assertEqual(json.loads(response['body']), f'Error: Document with id {event["pathParameters"]["id"]} not found')
+        self.assertEqual(response['body'], f'Error: Document with id {event["pathParameters"]["id"]} not found')
 
 
 if __name__ == '__main__':

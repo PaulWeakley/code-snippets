@@ -14,11 +14,7 @@ class MongoDB_CRUD_Client:
         return self.client
 
     def ping(self):
-        try:
-            self.__get_client().admin.command('ping')
-            print("Pinged your deployment. You successfully connected to MongoDB!")
-        except Exception as e:
-            print(e)
+        self.__get_client().admin.command('ping')
 
     def close(self):
         if self.client is not None:
