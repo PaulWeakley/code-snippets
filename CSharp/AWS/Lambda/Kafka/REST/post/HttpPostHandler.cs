@@ -45,10 +45,10 @@ namespace AWS.Lambda.Kafka.REST
             {
                 request.QueryStringParameters.TryGetValue("interop", out string? interop_value);
                 if (!string.IsNullOrEmpty(interop_value))
-                    useInterop = interop_value.Equals("true", StringComparison.CurrentCultureIgnoreCase) ||
-                                interop_value.Equals("1", StringComparison.CurrentCultureIgnoreCase) ||
-                                interop_value.Equals("yes", StringComparison.CurrentCultureIgnoreCase) ||
-                                interop_value.Equals("on", StringComparison.CurrentCultureIgnoreCase);
+                    useInterop = "true".Equals(interop_value, StringComparison.CurrentCultureIgnoreCase) ||
+                                "1".Equals(interop_value, StringComparison.CurrentCultureIgnoreCase) ||
+                                "yes".Equals(interop_value, StringComparison.CurrentCultureIgnoreCase) ||
+                                "on".Equals(interop_value, StringComparison.CurrentCultureIgnoreCase);
             }
 
             if (string.IsNullOrEmpty(topic))
@@ -97,7 +97,7 @@ namespace AWS.Lambda.Kafka.REST
             // TODO: Implement Interop Cloud Event Builder
             var result = await producer.ProduceMessagesAsync(topic, 
                      new JsonCloudEventBuilder<string>(), 
-                     [request.Body],
+                     [data],
                      headers: new CloudEventHeaders(subject: subject));
 
             // Return the API Gateway response
