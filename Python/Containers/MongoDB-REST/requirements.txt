@@ -1,0 +1,6 @@
+aws_xray_sdk
+boto3
+flask
+prometheus_client
+pymongo
+python-dotenv

@@ -1,6 +1,6 @@
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from bson import ObjectId
+from bson.objectid import ObjectId
 
 class MongoDB_CRUD_Client:
     def __init__(self, config):

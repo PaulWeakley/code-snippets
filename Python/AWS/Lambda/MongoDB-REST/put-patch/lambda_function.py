@@ -1,11 +1,8 @@
-import json
 import configparser
 import json
-from bson import ObjectId
 from dotenv import load_dotenv
 import os
 import sys
-from typing import Callable
 
 # Get the directory of the current file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +14,7 @@ from mongodb_crud_client import MongoDB_CRUD_Client
 from mongodb_rest_client import MongoDB_REST_Client
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read(os.path.join(current_dir,'config.ini'))
 
 load_dotenv()
 

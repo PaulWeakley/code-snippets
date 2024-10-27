@@ -1,14 +1,7 @@
 import json
 from bson import ObjectId
-import os
-import sys
 from typing import Optional, Any
 
-# Get the directory of the current file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Add the directory containing interop.py to the system path
-sys.path.append(os.path.join(current_dir, '../CRUD/'))
 from mongodb_crud_client import MongoDB_CRUD_Client
 
 class MongoDB_REST_Client:

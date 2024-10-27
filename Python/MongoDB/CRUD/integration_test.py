@@ -1,9 +1,7 @@
 import configparser
-import json
 from dotenv import load_dotenv
 import os
 import unittest
-import json
 
 from mongodb_crud_client import MongoDB_CRUD_Client
 
