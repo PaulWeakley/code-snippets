@@ -4,6 +4,8 @@ import os
 import sys
 from typing import Optional, Any
 
+from rest_response import REST_Response
+
 # Get the directory of the current file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,33 +17,17 @@ class MongoDB_REST_Client:
     def __init__(self, mongodb_crud_client: MongoDB_CRUD_Client):
         self.__crud_client = mongodb_crud_client
 
-    def __bad_request(self, message: str) -> dict:
-        return {
-            'statusCode': 400,
-            'headers': {'Content-Type': 'text/plain'},
-            'body': json.dumps(message)
-        }
+    def __bad_request(self, message: str) -> REST_Response:
+        return REST_Response(400, 'text/plain', message)
 
-    def __error_message(self, e: Exception) -> dict:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'text/plain'},
-            'body': str(e)
-        }
+    def __error_message(self, e: Exception) -> REST_Response:
+        return REST_Response(500, 'text/plain', str(e))
 
-    def __not_found(self, id: ObjectId) -> dict:
-        return {
-            'statusCode': 404,
-            'headers': {'Content-Type': 'text/plain'},
-            'body': f'Error: Document with id {id} not found'
-        }
+    def __not_found(self, id: ObjectId) -> REST_Response:
+        return REST_Response(404, 'text/plain', f'Error: Document with id {id} not found')
 
-    def __ok(self, data: dict) -> dict:
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps(data, default=str)
-        }
+    def __ok(self, data: dict) -> REST_Response:
+        return REST_Response(200, 'application/json', json.dumps(data, default=str))
     
     def __verify_parameters(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str], is_id_required: bool, data: Optional[Any], is_data_required: bool) -> Optional[dict]:
         if db_name is None:
@@ -60,7 +46,7 @@ class MongoDB_REST_Client:
     def ping(self):
         self.__crud_client.ping()
 
-    def get(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str]) -> dict: 
+    def get(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str]) -> REST_Response: 
         try:
             error = self.__verify_parameters(db_name, collection_name, id, True, None, False)
             if error is not None:
@@ -73,7 +59,7 @@ class MongoDB_REST_Client:
         except Exception as e:
             return self.__error_message(e)
         
-    def post(self, db_name: Optional[str], collection_name: Optional[str], data: Optional[any]) -> dict:
+    def post(self, db_name: Optional[str], collection_name: Optional[str], data: Optional[any]) -> REST_Response:
         try:
             error = self.__verify_parameters(db_name, collection_name, None, False, data, True)
             if error is not None:
@@ -92,7 +78,7 @@ class MongoDB_REST_Client:
         except Exception as e:
             return self.__error_message(e)
 
-    def put(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str], data: Optional[any]) -> dict: 
+    def put(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str], data: Optional[any]) -> REST_Response: 
         try:
             error = self.__verify_parameters(db_name, collection_name, id, True, data, True)
             if error is not None:
@@ -105,7 +91,7 @@ class MongoDB_REST_Client:
         except Exception as e:
             return self.__error_message(e)
 
-    def delete(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str]) -> dict: 
+    def delete(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str]) -> REST_Response: 
         try:
             error = self.__verify_parameters(db_name, collection_name, id, True, None, False)
             if error is not None:
