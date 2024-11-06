@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import MongoDB_CRUD_Client from '../CRUD/MongoDB_CRUD_Client';
+import MongoDB_CRUD_Client from '../../CRUD/src/MongoDB_CRUD_Client';
 import REST_Response from './REST_Response';
 
 
@@ -63,7 +63,7 @@ class MongoDB_REST_Client {
             }
             return this.__not_found(object_id);
         } catch (e) {
-            return this.__error_message(e);
+            return this.__error_message(e as Error);
         }
     }
 
@@ -80,7 +80,7 @@ class MongoDB_REST_Client {
             }
             return new REST_Response(500, 'text/plain', 'Failed to create document');
         } catch (e) {
-            return this.__error_message(e);
+            return this.__error_message(e as Error);
         }
     }
 
@@ -97,7 +97,7 @@ class MongoDB_REST_Client {
             }
             return this.__not_found(object_id);
         } catch (e) {
-            return this.__error_message(e);
+            return this.__error_message(e as Error);
         }
     }
 
@@ -115,10 +115,10 @@ class MongoDB_REST_Client {
             }
             return this.__not_found(object_id);
         } catch (e) {
-            return this.__error_message(e);
+            return this.__error_message(e as Error);
         }
     }
 }
 
-export { MongoDB_REST_Client };
+export default MongoDB_REST_Client;
 
