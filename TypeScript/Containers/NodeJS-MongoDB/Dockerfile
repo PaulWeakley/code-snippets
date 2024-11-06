@@ -11,6 +11,9 @@ RUN npm install
 # Copy the source code
 COPY . .
 
+# Copy .env file
+COPY .env .env
+
 # Build the TypeScript code
 RUN npm run build
 
@@ -29,4 +32,4 @@ RUN npm install --only=production
 EXPOSE 3000
 
 # Run the app
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/src/app.js"]
