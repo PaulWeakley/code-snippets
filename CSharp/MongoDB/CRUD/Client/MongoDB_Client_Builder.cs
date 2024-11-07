@@ -1,10 +1,10 @@
 using MongoDB.Driver;
 
-namespace MongoDB.CRUD;
+namespace MongoDB.CRUD.Client;
 
-public class MongoDBClientBuilder : IMongoDBClientBuilder
+public class MongoDB_Client_Builder : IMongoDB_Client_Builder
 {
-    public MongoDBClientBuilder(MongoClientSettings mongoClientSettings)
+    public MongoDB_Client_Builder(MongoClientSettings mongoClientSettings)
     {
         MongoClientSettings = mongoClientSettings;
     }

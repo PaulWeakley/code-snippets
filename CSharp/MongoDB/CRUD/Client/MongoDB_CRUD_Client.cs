@@ -1,16 +1,11 @@
-﻿namespace MongoDB.CRUD;
+﻿namespace MongoDB.CRUD.Client;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-public class MongoDBCrudClient : IMongoDBCrudClient
+public class MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) : IMongoDB_CRUD_Client
 {
-    public MongoDBCrudClient(IMongoDBClientBuilder mongoDBClientBuilder)
-    {
-        MongoDBClientBuilder = mongoDBClientBuilder;
-    }
-
-    private IMongoDBClientBuilder MongoDBClientBuilder { get; }
+    private IMongoDB_Client_Builder MongoDBClientBuilder { get; } = mongoDBClientBuilder;
     private IMongoClient? MongoClient { get; set; }
 
     private IMongoClient GetClient()
@@ -20,6 +15,11 @@ public class MongoDBCrudClient : IMongoDBCrudClient
         return MongoClient;
     }
 
+    public async Task Ping()
+    {
+        await GetClient().GetDatabase("admin").RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
+    }
+
     private IMongoCollection<BsonDocument> GetCollection(string dbName, string collectionName)
     {
         var client = GetClient();
@@ -27,21 +27,21 @@ public class MongoDBCrudClient : IMongoDBCrudClient
         return database.GetCollection<BsonDocument>(collectionName);
     }
 
-    public async Task<ObjectId> CreateAsync(string dbName, string collectionName, BsonDocument document, CancellationToken cancellationToken = default)
+    public async Task<ObjectId?> CreateAsync(string dbName, string collectionName, BsonDocument document, CancellationToken cancellationToken = default)
     {
         var collection = GetCollection(dbName, collectionName);
         await collection.InsertOneAsync(document, null, cancellationToken);
         return document["_id"].AsObjectId;
     }
 
-    public async Task<BsonDocument> ReadAsync(string dbName, string collectionName, ObjectId documentId, CancellationToken cancellationToken = default)
+    public async Task<BsonDocument?> ReadAsync(string dbName, string collectionName, ObjectId documentId, CancellationToken cancellationToken = default)
     {
         var collection = GetCollection(dbName, collectionName);
         var filter = Builders<BsonDocument>.Filter.Eq("_id", documentId);
         return (await collection.FindAsync(filter, null, cancellationToken)).FirstOrDefault(cancellationToken);        
     }
 
-    public async Task<BsonDocument> UpdateAsync(string dbName, string collectionName, ObjectId documentId, BsonDocument updateFields, CancellationToken cancellationToken = default)
+    public async Task<BsonDocument?> UpdateAsync(string dbName, string collectionName, ObjectId documentId, BsonDocument updateFields, CancellationToken cancellationToken = default)
     {
         var collection = GetCollection(dbName, collectionName);
         var filter = Builders<BsonDocument>.Filter.Eq("_id", documentId);

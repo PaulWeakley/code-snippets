@@ -51,7 +51,7 @@ def build_health_check_response():
         "version": "1.0.0"
     }
 
-@app.route('/health-check', methods=['GET', 'POST'])
+@app.route('/health', methods=['GET', 'POST'])
 def health_check():
     try: 
         mongo_health = build_health_check_mongodb()

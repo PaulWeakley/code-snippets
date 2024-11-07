@@ -1,18 +1,18 @@
 import { MongoClient, ServerApiVersion, MongoClientOptions, Collection, ObjectId } from 'mongodb';
-import IMongoDB_Config from './IMongoDB_Config';
+import IMongoDB_CRUD_Client_Builder from './IMongoDB_Client_Builder';
 
 class MongoDB_CRUD_Client {
-    private __uri: string;
+    private __builder: IMongoDB_CRUD_Client_Builder;
     private __client: MongoClient | null;
 
-    constructor(config: IMongoDB_Config) {
-        this.__uri = config.toUri();
+    constructor(builder: IMongoDB_CRUD_Client_Builder) {
+        this.__builder = builder;
         this.__client = null;
     }
 
     private async __get_client(): Promise<MongoClient> {
         if (this.__client === null) {
-            this.__client = new MongoClient(this.__uri);
+            this.__client = this.__builder.get_client();
             await this.__client.connect();
         }
         return this.__client;

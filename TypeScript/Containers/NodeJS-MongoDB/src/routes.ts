@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import MongoDB_REST_Client from '../MongoDB/REST/src/MongDB_REST_Client';
 import MongoDB_CRUD_Client from '../MongoDB/CRUD/src/MongoDB_CRUD_Client';
 import MongoDB_Config from '../MongoDB/CRUD/src/MongoDB_Config';
+import MongoDB_Client_Builder from '../MongoDB/CRUD/src/MongoDB_Client_Builder';
 import config from '../config';
 
 dotenv.config();
@@ -19,7 +20,8 @@ const mongodb_config = new MongoDB_Config(
   config.mongodb.appName
 );
 
-const createMongoDBClient = () => new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongodb_config));
+const mongodbClientBuilder = new MongoDB_Client_Builder(mongodb_config);
+const createMongoDBClient = () => new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongodbClientBuilder));
 
 const buildHealthCheckMongoDB = async () => {
   const client = createMongoDBClient();
@@ -59,8 +61,8 @@ const handleHealthCheck = async (req: Request, res: Response) => {
   }
 };
   
-router.get('/health-check', handleHealthCheck);
-router.post('/health-check', handleHealthCheck);
+router.get('/health', handleHealthCheck);
+router.post('/health', handleHealthCheck);
 
 router.get('/:db_name/:collection_name/:id', async (req: Request, res: Response) => {
   const client = createMongoDBClient();
