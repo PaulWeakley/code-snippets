@@ -1,0 +1,50 @@
+{
+	"info": {
+		"_postman_id": "0089cffa-d617-4b94-bc68-b493eccd6faf",
+		"name": "Azure",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10306084"
+	},
+	"item": [
+		{
+			"name": "Function",
+			"item": [
+				{
+					"name": "Kafka",
+					"item": [
+						{
+							"name": "Publish Event",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"data\": \"test@example.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:7071/api/topic_0/subject123",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "7071",
+									"path": [
+										"api",
+										"topic_0",
+										"subject123"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
