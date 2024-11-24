@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.CRUD.Client;
 
 namespace MongoDB.REST.Client;
@@ -12,25 +14,25 @@ public class MongoDB_REST_Client
         __crud_client = mongodb_crud_client;
     }
 
-    static private REST_Response BadRequest(string message)
-    {
-        return new REST_Response(400, "text/plain", message);
+    static private JsonWriterSettings JsonWriterSettings => new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
+
+    static private REST_Response BadRequest(string message)=> new(400, "text/plain", message);
+
+    static private REST_Response ErrorMessage(Exception e) => ErrorMessage(e.Message);
+
+    static private REST_Response ErrorMessage(string message) => new(500, "text/plain", message);
+
+    static private REST_Response NotFound(ObjectId id) => new(404, "text/plain", $"Exception: Document with id {id} not found");
+
+    static private REST_Response Ok(BsonDocument data) {
+        if (data.Contains("_id") && data["_id"].IsObjectId)
+            data["_id"] = data["_id"].AsObjectId.ToString();
+        return new(200, "application/json", data.ToJson(JsonWriterSettings));
     }
 
-    static private REST_Response ErrorMessage(Exception e)
-    {
-        return new REST_Response(500, "text/plain", e.Message);
-    }
+    static private REST_Response Created(ObjectId id) => new(201, "text/plain", $"{id}");
 
-    static private REST_Response NotFound(ObjectId id)
-    {
-        return new REST_Response(404, "text/plain", $"Exception: Document with id {id} not found");
-    }
-
-    static private REST_Response Ok(BsonDocument data)
-    {
-        return new REST_Response(200, "application/json", data.ToJson());
-    }
+    static private REST_Response Deleted(string id) => new(200, "text/plain", $"Document with id {id} deleted");
 
     static private REST_Response? VerifyParameters(string? dbName, string? collectionName, string? id, bool isIdRequired, object? data, bool isDataRequired)
     {
@@ -92,11 +94,9 @@ public class MongoDB_REST_Client
             }
 
             var documentId = await __crud_client.CreateAsync(dbName!, collectionName!, BsonDocument.Parse(data));
-#pragma warning disable CS8604 // Possible null reference argument.
             return null != documentId && documentId != ObjectId.Empty
-                ? new REST_Response(201, "text/plain", documentId.ToString())
-                : new REST_Response(500, "text/plain", "Failed to create document");
-#pragma warning restore CS8604 // Possible null reference argument.
+                ? Created(documentId.Value)
+                : ErrorMessage("Failed to create document");
         }
         catch (Exception e)
         {
@@ -139,9 +139,7 @@ public class MongoDB_REST_Client
             var objectId = new ObjectId(id);
             var result = await __crud_client.DeleteAsync(dbName!, collectionName!, objectId);
             if (result)
-            {
-                return new REST_Response(200, "text/plain", $"Document with id {id} deleted");
-            }
+                return Deleted(id!);
             return NotFound(objectId);
         }
         catch (Exception e)

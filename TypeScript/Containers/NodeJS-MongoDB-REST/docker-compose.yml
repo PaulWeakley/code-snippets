@@ -1,10 +1,10 @@
 services:
   mongodb-rest-api:
     build: .
-    image: csharp-mongodb-rest-api
+    image: nodejs-typescript-mongodb-rest-api
     ports:
-      - '8080:80'
+      - '3000:80'
     environment:
-      - ASPNETCORE_URLS=http://+:80
+      - NODE_ENV=production
     env_file:
       - .env

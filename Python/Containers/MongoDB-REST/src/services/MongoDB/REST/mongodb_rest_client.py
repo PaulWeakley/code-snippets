@@ -4,14 +4,8 @@ import os
 import sys
 from typing import Optional, Any
 
-from rest_response import REST_Response
-
-# Get the directory of the current file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Add the directory containing interop.py to the system path
-sys.path.append(os.path.join(current_dir, '../CRUD/'))
-from mongodb_crud_client import MongoDB_CRUD_Client
+from src.services.MongoDB.CRUD.mongodb_crud_client import MongoDB_CRUD_Client
+from .rest_response import REST_Response
 
 class MongoDB_REST_Client:
     def __init__(self, mongodb_crud_client: MongoDB_CRUD_Client):

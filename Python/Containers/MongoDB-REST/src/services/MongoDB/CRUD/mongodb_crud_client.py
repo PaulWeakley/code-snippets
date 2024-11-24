@@ -1,7 +1,8 @@
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from bson import ObjectId
-from mongodb_config import MongoDB_Config
+
+from .mongodb_config import MongoDB_Config
 
 class MongoDB_CRUD_Client:
     def __init__(self, config: MongoDB_Config):

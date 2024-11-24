@@ -3,8 +3,10 @@ using MongoDB.REST.Client;
 using MongoDB.CRUD.Client;
 using System.Text.Json;
 
+namespace MongoDB.REST.Controllers;
+
 [ApiController]
-[Route("api")]
+[Route("api/mongodb")]
 public class MongoDB_REST_Controller : ControllerBase
 {
     static private IActionResult ToActionResult(REST_Response response)

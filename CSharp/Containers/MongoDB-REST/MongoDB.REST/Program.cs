@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MongoDB.CRUD.Client; // Add this at the top of the file
 using MongoDB.Driver;
+using MongoDB.REST.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +15,6 @@ builder.Services.AddSwaggerGen();
 var config = builder.Configuration;
 var mongoDbSection = config.GetSection("MongoDB");
 var mongoDbServer = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? mongoDbSection.GetValue<string>("MONGODB_SERVER");
-var mongoDbAuthDb = Environment.GetEnvironmentVariable("MONGODB_AUTH_DB") ?? mongoDbSection.GetValue<string>("MONGODB_AUTH_DB");
 var mongoDbUsername = Environment.GetEnvironmentVariable("MONGODB_USERNAME") ?? mongoDbSection.GetValue<string>("MONGODB_USERNAME");
 var mongoDbPassword = Environment.GetEnvironmentVariable("MONGODB_PASSWORD") ?? mongoDbSection.GetValue<string>("MONGODB_PASSWORD");
 var mongoDbAppName = mongoDbSection.GetValue<string>("appName");
@@ -26,7 +28,8 @@ builder.Services.AddScoped<IMongoDB_Client_Builder, MongoDB_Client_Builder>();
 // Add controllers
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks()
-    .AddCheck<MongoDBHealthCheck>("mongodb");
+    .AddCheck<MongoDBHealthCheck>("mongodb")
+    ;
 
 var app = builder.Build();
 
@@ -41,5 +44,8 @@ if (app.Environment.IsDevelopment())
 //app.UseAuthorization();
 app.MapControllers();
 // Map health checks endpoint
-app.MapHealthChecks("/api/health");
+app.MapHealthChecks("/api/health", new HealthCheckOptions()
+{
+    ResponseWriter = async (context, report) => await context.Response.WriteAsJsonAsync(new HealthResults(report))
+});
 app.Run();

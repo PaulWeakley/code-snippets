@@ -1,0 +1,10 @@
+services:
+  mongodb-rest-api:
+    build: .
+    image: python-mongodb-rest-api
+    ports:
+      - "5000:80"
+    env_file:
+      - .env
+    volumes:
+      - .:/src

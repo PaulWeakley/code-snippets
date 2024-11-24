@@ -1,15 +1,11 @@
 # Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /src
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Copy the mongo clients
-#COPY ../../MongoDB/CRUD/mongodb_crud_client.py /app/mongodb_crud_client.py
-#COPY ../../MongoDB/REST/mongodb_rest_client.py /app/mongodb_rest_client.py
+# Copy the current directory contents into the container at /src
+COPY . /src
 
 # Install any dependencies specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
@@ -18,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install python-dotenv
 
 # Copy the .env file into the container
-COPY .env /app/.env
+COPY .env /src/.env
 
 # Install Gunicorn
 RUN pip install gunicorn
@@ -27,4 +23,4 @@ RUN pip install gunicorn
 EXPOSE 80
 
 # Run the application with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "run:app"]

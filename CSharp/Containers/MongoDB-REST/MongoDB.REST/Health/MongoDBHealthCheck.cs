@@ -5,6 +5,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MongoDB.CRUD.Client;
 using MongoDB.REST.Client;
 
+namespace MongoDB.REST.Health;
+
 public class MongoDBHealthCheck : IHealthCheck
 {
     private readonly IMongoDB_Client_Builder _mongoDB_Client_Builder;
