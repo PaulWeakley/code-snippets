@@ -1,43 +1,60 @@
-# Dockerfile
+# Use the official PHP image as the base image
+FROM php:8.4-fpm
 
-# Use official PHP image as base
-FROM php:8.2-fpm
-
-# Set working directory
-WORKDIR /var/www
-
-# Install dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
+    nginx \
     libpng-dev \
-    libjpeg62-turbo-dev \
+    libjpeg-dev \
     libfreetype6-dev \
-    locales \
+    libonig-dev \
+    libxml2-dev \
     zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
     unzip \
     git \
-    curl
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql
-
-RUN pecl install mongodb \
-    && docker-php-ext-enable mongodb
+    curl \
+    supervisor \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy the application files
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy Composer files
+COPY composer.json composer.lock artisan ./
+
+# Copy application files
 COPY . .
 
-# Install PHP dependencies with Composer
+# Install dependencies without development packages
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www
+# Copy Nginx configuration file
+COPY ./default.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 9000
-EXPOSE 9000
+# Set permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["php-fpm"]
+# Set up Supervisor to manage processes
+COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create the SQLite database file
+RUN mkdir -p /var/www/html/database && \
+    touch /var/www/html/database/database.sqlite && \
+    chown -R www-data:www-data /var/www/html/database
+
+# Run Laravel optimization commands
+RUN php artisan cache:clear || true && \
+    php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear && \
+    php artisan optimize
+
+# Expose port 80
+EXPOSE 80
+
+# Start Supervisor to manage Nginx and PHP-FPM
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

@@ -304,7 +304,6 @@ __pycache__/
 
 # PHP
 PHP/**/*/vendor/
-composer.lock
 *.log
 *.cache
 *.tmp
