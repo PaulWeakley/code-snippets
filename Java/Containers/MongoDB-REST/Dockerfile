@@ -25,5 +25,6 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose the application's port
 EXPOSE 8080
 
-# Command to run the application
-CMD ["java", "-jar", "app.jar"]
+
+# Command to run the application with OpenTelemetry Java agent
+CMD ["java", "-javaagent:/path/to/opentelemetry-javaagent.jar", "-jar", "app.jar"]

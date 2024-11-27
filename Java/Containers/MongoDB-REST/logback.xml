@@ -1,0 +1,12 @@
+<configuration>
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <endpoint>https://your-loki-endpoint.grafana.net/loki/api/v1/push</endpoint>
+        <basicAuth>
+            <username>your-username</username>
+            <password>your-password</password>
+        </basicAuth>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="LOKI" />
+    </root>
+</configuration>

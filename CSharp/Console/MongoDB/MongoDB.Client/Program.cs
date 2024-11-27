@@ -3,7 +3,7 @@
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
 
-var baseUrl = "http://localhost:5000/api";
+var baseUrl = "http://localhost:6000/api";
 
 var healthClient = new MongoDB.Client.HealthClient($"{baseUrl}/health");
 
