@@ -47,3 +47,7 @@ TBD
 ## CSharp
 dotnet build --no-incremental -c Release
 dotnet publish -c Release -r linux-x64 --self-contained false
+
+
+# Container Setup
+docker network create shared_network

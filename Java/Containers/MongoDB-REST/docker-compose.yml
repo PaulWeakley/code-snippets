@@ -1,9 +1,0 @@
-services:
-  mongodb-rest-api:
-    build:
-      context: .
-    image: java-mongodb-rest-api
-    ports:
-      - '6000:8080'
-    env_file:
-      - .env

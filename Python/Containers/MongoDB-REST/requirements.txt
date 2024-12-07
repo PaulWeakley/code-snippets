@@ -1,4 +1,0 @@
-flask
-prometheus_client
-pymongo
-python-dotenv

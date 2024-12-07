@@ -1,0 +1,31 @@
+{
+    "metrics": {
+        "url": "https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push",
+        "basicAuth": {
+            "username": "1868058",
+            "password": "glc_eyJvIjoiMTI1NzQxNSIsIm4iOiJzdGFjay0xMDc1NTM0LWhtLXdyaXRlLXByb20tdG9rZW4iLCJrIjoiNzRRcGQ2MzBrMlg1bXBSMDFhOEVycm5TIiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0="
+        }
+    },
+    "logs": {
+        "url": "https://logs-prod-006.grafana.net/loki/api/v1/push",
+        "basicAuth": {
+            "username": "1033313",
+            "password": "glc_eyJvIjoiMTI1NzQxNSIsIm4iOiJzdGFjay0xMDc1NTM0LWFsbG95LWdyYWZhbmEtYWxsb3ktb3RscCIsImsiOiJhZmFQNnc1OTA2OXN3Nno0WVkySzVBWXQiLCJtIjp7InIiOiJwcm9kLXVzLWVhc3QtMCJ9fQ=="
+        }
+    },
+    "traces": {
+        "url": "tempo-prod-04-prod-us-east-0.grafana.net:443",
+        "basicAuthToken": "MTAyNzYyODpnbGNfZXlKdklqb2lNVEkxTnpReE5TSXNJbTRpT2lKemRHRmpheTB4TURjMU5UTTBMV2gwTFhKbFlXUXRkR1Z0Y0c4aUxDSnJJam9pYm1wVGRrSTRWMnRNTmxJMmFESTBkRlV3WlRBMk5EaERJaXdpYlNJNmV5SnlJam9pY0hKdlpDMTFjeTFsWVhOMExUQWlmWDA9Cg==",
+        "tls": {
+            "insecure": false,
+            "insecureSkipVerify": true
+        }
+    },
+    "profiles": {
+        "url": "https://profiles-prod-001.grafana.net",
+        "basicAuth": {
+            "username": "1075534",
+            "password": "glc_eyJvIjoiMTI1NzQxNSIsIm4iOiJzdGFjay0xMDc1NTM0LWhwLXdyaXRlLXByeXJvLXByb2ZpbGUiLCJrIjoiMmU1NWVYZjNRVjc4OUsyOEJrNmxrbnZ1IiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0="
+        }
+    }
+}
