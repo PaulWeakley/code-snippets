@@ -100,7 +100,7 @@ otelcol.exporter.otlp "tempo" {
 
 otelcol.auth.basic "tempo" {
   username = "1027628"
-  password = "glc_eyJvIjoiMTI1NzQxNSIsIm4iOiJzdGFjay0xMDc1NTM0LWh0LXJlYWQtdGVtcG8iLCJrIjoibmpTdkI4V2tMNlI2aDI0dFUwZTA2NDhDIiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0="
+  password = ""
 }
 
 otelcol.exporter.otlp "tempo2" {
@@ -122,7 +122,7 @@ otelcol.exporter.otlp "tempo2" {
 otelcol.auth.headers "tempo" {
     header {
         key = "Authorization"
-        value = join(["Basic ", "MTAyNzYyODpnbGNfZXlKdklqb2lNVEkxTnpReE5TSXNJbTRpT2lKemRHRmpheTB4TURjMU5UTTBMV2gwTFhkeWFYUmxMWFJsYlhCdkxXRnNiRzk1SWl3aWF5STZJamMxTVRSWU1tdGlPVVJpYUd0dVdqSm5lRGt5TWsxSlJTSXNJbTBpT25zaWNpSTZJbkJ5YjJRdGRYTXRaV0Z6ZEMwd0luMTkK"], "")
+        value = join(["Basic ", ""], "")
     }
 }
 
