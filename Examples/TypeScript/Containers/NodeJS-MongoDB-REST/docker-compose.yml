@@ -10,11 +10,6 @@ services:
       - .env
   grafana-alloy:
     image: grafana/alloy:v1.3.1
-    ports:
-      - "12347:12345"
-      - "12348:12348"
-      - "6832:6832"
-      - "55679:55679"
     volumes:
       - "./config/config.alloy:/etc/alloy/config.alloy"
     env_file:

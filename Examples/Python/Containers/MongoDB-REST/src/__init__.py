@@ -9,6 +9,8 @@ from flask import Flask
 # OpenTelemetry imports
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -30,6 +32,7 @@ app = Flask(__name__)
 
 # Instrument Flask
 FlaskInstrumentor().instrument_app(app)
+RequestsInstrumentor().instrument()
 
 # Load environment variables
 config = configparser.ConfigParser()
@@ -45,6 +48,11 @@ mongodb_config = {
     'appName': config.get('MongoDB', 'appName')
 }
 
+trace_provider = TracerProvider()
+trace_exporter = OTLPSpanExporter(endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+span_processor = BatchSpanProcessor(trace_exporter)
+trace_provider.add_span_processor(span_processor)
+"""
 # Fetch OTLP endpoint and API key
 OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 OTLP_API_KEY = os.getenv("OTEL_EXPORTER_OTLP_API_KEY")
@@ -76,7 +84,7 @@ metric_exporter = OTLPMetricExporter(
     headers={"Authorization": f"Bearer {OTLP_API_KEY}"}
 )
 metric_reader = PeriodicExportingMetricReader(metric_exporter)
-meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])"""
 
 # Instrument logging for traces
 LoggingInstrumentor().instrument(set_logging_format=True)

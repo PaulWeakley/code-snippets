@@ -9,3 +9,15 @@ services:
     volumes:
       - .:/src
     command: gunicorn -b 0.0.0.0:80 run:app
+  grafana-alloy:
+    image: grafana/alloy:v1.3.1
+    volumes:
+      - "./config/config.alloy:/etc/alloy/config.alloy"
+    env_file:
+      - .env
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
+    ]
