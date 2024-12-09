@@ -1,19 +1,28 @@
 // src/app.ts
+//import './otel-instrumentation';
 import express, { Application, Request, Response } from 'express';
 import promClient from 'prom-client';
-import Pyroscope from '@pyroscope/nodejs';
-import expressMiddleware from '@pyroscope/nodejs';
-
+//import Pyroscope from '@pyroscope/nodejs'
 
 import healthRoutes from './routes/health.routes';
 import mongodbRESTRoutes from './routes/mongodb.routes';
 
+/*Pyroscope.init({
+    appName: 'nodejs-typescript-mongodb-rest-api', // Replace with your application name
+    serverAddress: process.env.PYROSCOPE_SERVER_URL || 'http://pyroscope:4040', // Pyroscope server address
+  });*/
+
 // Prometheus client registration
 const app: Application = express();
-// Prometheus metrics setup
+
 const register = promClient.register;
-register.setContentType("text/plain; version=0.0.4; charset=utf-8");
-//promClient.collectDefaultMetrics({});
+register.setContentType('text/plain; version=0.0.4; charset=utf-8');
+promClient.collectDefaultMetrics();
+
+app.get('/metrics', async (req: Request, res: Response) => {
+  res.set('Content-Type', register.contentType);
+  res.send(await register.metrics());
+});
 
 // Initialise the Pyroscope library to send pprof data.
 // Initialize the Pyroscope library to send profiling data
@@ -29,12 +38,7 @@ register.setContentType("text/plain; version=0.0.4; charset=utf-8");
 // Apply Pyroscope Express middleware
 //app.use(expressMiddleware.expressMiddleware());
 
-app.use(express.json()); // for parsing application/json
-// Metrics endpoint handler (for Prometheus scraping)
-app.get('/metrics', async (req: Request, res: Response) => {
-    res.set('Content-Type', register.contentType);
-    res.send(await register.metrics());
-});
+app.use(express.json());
 app.use('/api/health', healthRoutes); // add your routes
 app.use('/api/mongodb', mongodbRESTRoutes); // add your routes
 

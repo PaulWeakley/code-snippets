@@ -1,13 +1,17 @@
 import { MongoClient, ServerApiVersion, MongoClientOptions, Collection, ObjectId } from 'mongodb';
 import IMongoDB_CRUD_Client_Builder from './imongodb-client-builder';
 
-class MongoDB_CRUD_Client {
+class MongoDB_CRUD_Client implements AsyncDisposable {
     private __builder: IMongoDB_CRUD_Client_Builder;
     private __client: MongoClient | null;
 
     constructor(builder: IMongoDB_CRUD_Client_Builder) {
         this.__builder = builder;
         this.__client = null;
+    }
+    
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.close();
     }
 
     private async __get_client(): Promise<MongoClient> {

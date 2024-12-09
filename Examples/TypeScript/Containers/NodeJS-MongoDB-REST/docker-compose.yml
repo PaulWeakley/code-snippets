@@ -8,9 +8,20 @@ services:
       - NODE_ENV=production
     env_file:
       - .env
-    networks:
-      - shared_network
-
-networks:
-  shared_network:
-    external: true
+  grafana-alloy:
+    image: grafana/alloy:v1.3.1
+    ports:
+      - "12347:12345"
+      - "12348:12348"
+      - "6832:6832"
+      - "55679:55679"
+    volumes:
+      - "./config/config.alloy:/etc/alloy/config.alloy"
+    env_file:
+      - .env
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
+    ]
