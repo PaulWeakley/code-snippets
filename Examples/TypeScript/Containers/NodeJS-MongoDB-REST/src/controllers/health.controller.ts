@@ -7,9 +7,6 @@ import config from '../config';
 import {env} from '../config/env';
 import { HealthResultEntry } from '../health/health-result-entry.model';
 import { HealthResults } from '../health/health-results.model';
-import { trace } from '@opentelemetry/api';
-
-const tracer = trace.getTracer('your-service-name');
 
 export class Health_Controller {
     constructor() {
@@ -49,12 +46,8 @@ export class Health_Controller {
     }
 
     async get(req: Request, res: Response) {
-        const span = tracer.startSpan('custom-span');
-  
         const client = this.createMongoDBClient();
         const response = await this.buildHealthCheckResponse(client);
-        // Perform operations
-        span.end();
         res.status(200).json(response);
     }
 }

@@ -3,10 +3,6 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 
-# OpenTelemetry imports
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-
 from .services.MongoDB.REST.mongodb_rest_client import MongoDB_REST_Client
 from .services.MongoDB.CRUD.mongodb_crud_client import MongoDB_CRUD_Client
 from .services.MongoDB.CRUD.mongodb_config import MongoDB_Config
@@ -30,10 +26,6 @@ mongodb_config = MongoDB_Config(
 
 def create_app():
     app = Flask(__name__)
-
-    # Instrument the app for OpenTelemetry
-    FlaskInstrumentor().instrument_app(app)
-    RequestsInstrumentor().instrument()
 
     app.url_map.strict_slashes = False
     app.mongodb_rest_client = MongoDB_REST_Client(mongodb_crud_client=MongoDB_CRUD_Client(mongodb_config))

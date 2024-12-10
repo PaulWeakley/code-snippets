@@ -13,10 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install the python-dotenv package to load environment variables from .env file
 RUN pip install python-dotenv
 
-# Install the OpenTelemetry package to enable tracing
-RUN pip install opentelemetry-distro[otlp]
-RUN opentelemetry-bootstrap -a install
-
 # Copy the .env file into the container
 COPY .env /src/.env
 
@@ -27,5 +23,4 @@ RUN pip install gunicorn
 EXPOSE 80
 
 # Run the application with Gunicorn
-#CMD ["gunicorn", "-c", "gunicorn.conf.py", "--bind", "0.0.0.0:80", "app:app"]
 CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
