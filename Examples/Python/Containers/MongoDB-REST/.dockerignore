@@ -1,0 +1,4 @@
+lib64
+node_modules
+.git
+__pycache__

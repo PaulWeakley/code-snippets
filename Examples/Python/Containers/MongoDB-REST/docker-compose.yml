@@ -8,7 +8,8 @@ services:
       - .env
     volumes:
       - .:/src
-    command: gunicorn -b 0.0.0.0:80 run:app
+    depends_on:
+      - grafana-alloy
   grafana-alloy:
     image: grafana/alloy:v1.3.1
     volumes:

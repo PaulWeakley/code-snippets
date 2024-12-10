@@ -29,7 +29,7 @@ RUN useradd --group node --uid 1001 --create-home appuser \
 USER appuser
 
 # Expose the application port
-EXPOSE 3000
+EXPOSE 80
 
 # Run the application
 CMD ["node", "./dist/src/server.js"]

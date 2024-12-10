@@ -1,11 +1,13 @@
-// src/app.ts
-//import './otel-instrumentation';
+import { startTelemetry } from './otel';
 import express, { Application, Request, Response } from 'express';
 import promClient from 'prom-client';
 //import Pyroscope from '@pyroscope/nodejs'
 
 import healthRoutes from './routes/health.routes';
 import mongodbRESTRoutes from './routes/mongodb.routes';
+
+// Initialize OpenTelemetry SDK
+startTelemetry();
 
 /*Pyroscope.init({
     appName: 'nodejs-typescript-mongodb-rest-api', // Replace with your application name

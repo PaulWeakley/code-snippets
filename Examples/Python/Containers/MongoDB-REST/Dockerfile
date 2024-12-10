@@ -27,4 +27,5 @@ RUN pip install gunicorn
 EXPOSE 80
 
 # Run the application with Gunicorn
-CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:80", "run:app"]
+#CMD ["gunicorn", "-c", "gunicorn.conf.py", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]

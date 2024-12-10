@@ -1,304 +1,137 @@
- prometheus.exporter.unix "local_system" { }
+otelcol.receiver.otlp "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.receiver.otlp/
 
-prometheus.scrape "scrape_metrics" {
-  targets         = prometheus.exporter.unix.local_system.targets
-  forward_to      = [prometheus.relabel.filter_metrics.receiver]
-  scrape_interval = "10s"
-}
+	// configures the default grpc endpoint "0.0.0.0:4317"
+	grpc { }
+	// configures the default http/protobuf endpoint "0.0.0.0:4318"
+	http { }
 
-prometheus.relabel "filter_metrics" {
-  rule {
-    action        = "drop"
-    source_labels = ["env"]
-    regex         = "dev"
-  }
-
-  forward_to = [prometheus.remote_write.metrics_service.receiver]
-}
- 
- local.file_match "local_files" {
-     path_targets = [{"__path__" = "/var/log/*.log"}]
-     sync_period = "5s"
- }
-
-loki.source.file "log_scrape" {
-    targets    = local.file_match.local_files.targets
-    forward_to = [loki.process.filter_logs.receiver]
-    tail_from_end = true
-}
-
-loki.process "filter_logs" {
-    stage.drop {
-        source = ""
-        expression  = ".*Connection closed by authenticating user root"
-        drop_counter_reason = "noisy"
-    }
-    forward_to = [loki.write.grafana_loki.receiver]
-}
-
-prometheus.remote_write "metrics_service" {
-    endpoint {
-		url = env("GRAFANA_CLOUD_PROM_URL")
-		basic_auth {
-			username = env("GRAFANA_CLOUD_PROM_USERNAME")
-			password = env("GRAFANA_CLOUD_PROM_API_TOKEN")
-		}
-    }
-}
-
-loki.write "grafana_loki" {
-    endpoint {
-        url = env("GRAFANA_CLOUD_LOKI_URL")
-		basic_auth {
-			username = env("GRAFANA_CLOUD_LOKI_USERNAME")
-			password = env("GRAFANA_CLOUD_LOKI_API_TOKEN")
-		}
+	output {
+		metrics = [otelcol.processor.resourcedetection.default.input]
+		logs    = [otelcol.processor.resourcedetection.default.input]
+		traces  = [otelcol.processor.resourcedetection.default.input]
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Tracing
+otelcol.processor.resourcedetection "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.resourcedetection/
+	detectors = ["env", "system"] // add "gcp", "ec2", "ecs", "elastic_beanstalk", "eks", "lambda", "azure", "aks", "consul", "heroku"  if you want to use cloud resource detection
 
-otelcol.receiver.otlp "otlp_receiver" {
-    grpc {
-        endpoint = "0.0.0.0:4317"
-    }
-    http {
-        endpoint = "0.0.0.0:4318"
-    }
+	system {
+		hostname_sources = ["os"]
+	}
 
-    output {
-        traces = [
-            //otelcol.connector.servicegraph.tracemetrics.input,
-            //otelcol.connector.spanmetrics.tracemetrics.input,
-            //otelcol.processor.tail_sampling.errors.input,
-            otelcol.exporter.otlp.tempo.input,
-            //otelcol.processor.batch.default.input,
-            //otelcol.connector.spanlogs.autologging.input,
-        ]
-    }
+	output {
+		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		traces  = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+	}
+}
+
+otelcol.processor.transform "drop_unneeded_resource_attributes" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
+	error_mode = "ignore"
+
+	trace_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	metric_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	log_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
+		logs    = [otelcol.processor.batch.default.input]
+		traces  = [
+			otelcol.processor.batch.default.input,
+			otelcol.connector.host_info.default.input,
+		]
+	}
+}
+
+otelcol.connector.host_info "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.connector.host_info/
+	host_identifiers = ["host.name"]
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
+	error_mode = "ignore"
+
+	metric_statements {
+		context    = "datapoint"
+		statements = [
+			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
+			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
 }
 
 otelcol.processor.batch "default" {
-    // Wait until we've received 1000 samples, up to a maximum of 2000.
-    send_batch_size = 1000
-    send_batch_max_size = 2000
-    // Or until 2 seconds have elapsed.
-    timeout = "2s"
-    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
-    output {
-        traces = [otelcol.exporter.otlp.tempo.input]
-    }
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.batch/
+	output {
+		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
+	}
 }
 
-otelcol.exporter.otlp "tempo" {
-  client {
-    endpoint = "tempo-prod-04-prod-us-east-0.grafana.net:443"
-    auth = otelcol.auth.headers.tempo.handler
-  }
+otelcol.exporter.otlphttp "grafana_cloud" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.exporter.otlphttp/
+	client {
+		endpoint = env("GRAFANA_CLOUD_OTLP_ENDPOINT")
+		auth     = otelcol.auth.basic.grafana_cloud.handler
+	}
 }
 
-otelcol.auth.basic "tempo" {
-  username = "1027628"
-  password = ""
-}
-
-otelcol.exporter.otlp "tempo2" {
-    client {
-        auth = otelcol.auth.headers.tempo.handler
-        endpoint = env("GRAFANA_CLOUD_TEMPO_URL")
-        tls {
-            insecure = false
-            insecure_skip_verify = true
-        }
-    }
-}
-
-//otelcol.auth.basic "tempo2" {
-//    username = env("GRAFANA_CLOUD_TEMPO_USERNAME")
-//    password = env("GRAFANA_CLOUD_TEMPO_API_TOKEN")
-//}
-
-otelcol.auth.headers "tempo" {
-    header {
-        key = "Authorization"
-        value = join(["Basic ", ""], "")
-    }
-}
-
-// The OpenTelemetry spanlog connector processes incoming trace spans and extracts data from them ready
-// for logging. This is the equivalent of Grafana Alloy's static automatic_logging pipeline.
-otelcol.connector.spanlogs "autologging" {
-    // We only want to output a line for each root span (ie. every single trace), and not for every
-    // process or span (outputting a line for every span would be extremely verbose).
-    spans = false
-    roots = true
-    processes = false
-    // We want to ensure that the following three span attributes are included in the log line, if
-    // present.
-    span_attributes = [ "http.method", "http.target", "http.status_code" ]
-
-    // Overrides the default key in the log line to be `traceId`, which is then used by Grafana to
-    // identify the trace ID for correlation with the Tempo datasource.
-    overrides {
-        trace_id_key = "traceId"
-    }
-    // Send to the OpenTelemetry Loki exporter.
-    output {
-        logs = [otelcol.exporter.loki.autologging.input]
-    }
-}
-
-// Simply forwards the incoming OpenTelemetry log format out as a Loki log.
-// We need this stage to ensure we can then process the logline as a Loki object.
-otelcol.exporter.loki "autologging" {
-    forward_to = [loki.process.autologging.receiver]
-}
-
-// The Loki processor allows us to accept a correctly formatted Loki log and mutate it into
-// a set of fields for output.
-loki.process "autologging" {
-    // The JSON stage simply extracts the `body` (the actual logline) from the Loki log, ignoring
-    // all other fields.
-    stage.json {
-        expressions = { "body" = "" }
-    }
-    // The output stage takes the body (the main logline) and uses this as the source for the output
-    // logline. In this case, it essentially turns it into logfmt.
-    stage.output {
-        source = "body"
-    }
-
-    // Finally send the processed logline onto the Loki exporter.
-    forward_to = [loki.write.autologging.receiver]
-}
-
-// The Loki writer receives a processed Loki log and then writes it to a Loki instance.
-loki.write "autologging" {
-    // Add the `alloy` value to the `job` label, so we can identify it as having been generated
-    // by Grafana Alloy when querying.
-    external_labels = {
-        job = "alloy",
-    }
-
-    // Output the Loki log to the local Loki instance.
-    endpoint {
-        url = env("GRAFANA_CLOUD_LOKI_URL")
-
-        // The basic auth credentials for the Loki instance.
-        basic_auth {
-            username = env("GRAFANA_CLOUD_LOKI_USERNAME")
-            password = env("GRAFANA_CLOUD_LOKI_API_TOKEN")
-        }
-    }
-}
-
-// The Tail Sampling processor will use a set of policies to determine which received traces to keep
-// and send to Tempo.
-otelcol.processor.tail_sampling "errors" {
-    // Total wait time from the start of a trace before making a sampling decision. Note that smaller time
-    // periods can potentially cause a decision to be made before the end of a trace has occurred.
-    decision_wait = "30s"
-
-    // The following policies follow a logical OR pattern, meaning that if any of the policies match,
-    // the trace will be kept. For logical AND, you can use the `and` policy. Every span of a trace is
-    // examined by each policy in turn. A match will cause a short-circuit.
-
-    // This policy defines that traces that contain errors should be kept.
-    policy {
-        // The name of the policy can be used for logging purposes.
-        name = "sample-erroring-traces"
-        // The type must match the type of policy to be used, in this case examining the status code
-        // of every span in the trace.
-        type = "status_code"
-        // This block determines the error codes that should match in order to keep the trace,
-        // in this case the OpenTelemetry 'ERROR' code.
-        status_code {
-            status_codes = [ "ERROR" ]
-        }
-    }
-
-    // This policy defines that only traces that are longer than 200ms in total should be kept.
-    policy {
-        // The name of the policy can be used for logging purposes.
-        name = "sample-long-traces"
-        // The type must match the policy to be used, in this case the total latency of the trace.
-        type = "latency"
-        // This block determines the total length of the trace in milliseconds.
-        latency {
-            threshold_ms = 200
-        }
-    }
-
-    // The output block forwards the kept traces onto the batch processor, which will marshall them
-    // for exporting to Tempo.
-    output {
-        traces = [otelcol.processor.batch.default.input]
-    }
-}
-
-// The Spanmetrics Connector will generate RED metrics based on the incoming trace span data.
-otelcol.connector.spanmetrics "tracemetrics" {
-    // The namespace explicit adds a prefix to all the generated span metrics names.
-    // In this case, we'll ensure they match as closely as possible those generated by Tempo.
-    namespace = "traces.spanmetrics"
-
-    // Each extra dimension (metrics label) to be added to the generated metrics from matching span attributes. These
-    // need to be defined with a name and optionally a default value (in the following cases, we do not want a default
-    // value if the span attribute is not present).
-    dimension {
-        name = "http.method"
-    }
-    dimension {
-        name = "http.target"
-    }
-    dimension {
-        name = "http.status_code"
-    }
-    dimension {
-        name = "service.version"
-    }
-
-    // A histogram block must be present, either explicitly defining bucket values or via an exponential block.
-    // We do the latter here.
-    histogram {
-        explicit {
-        }
-    }
-
-    // The exemplar block is added to ensure we generate exemplars for traces on relevant metric values.
-    exemplars {
-        enabled = true
-    }
-
-    // Generated metrics data is in OTLP format. We send this data to the OpenTelemetry Prometheus exporter to ensure
-    // it gets transformed into Prometheus format data.
-    output {
-        metrics = [otelcol.exporter.prometheus.tracemetrics.input]
-    }
-}
-
-// The Servicegraph Connector will generate service graph metrics (edges and nodes) based on incoming trace spans.
-otelcol.connector.servicegraph "tracemetrics" {
-    // Extra dimensions (metrics labels) to be added to the generated metrics from matching span attributes.
-    // For this component, this is defined as an array. There are no default values and the labels will not be generated
-    // for missing span attributes.
-    dimensions = [
-        "http.method",
-        "http.target",
-        "http.status_code",
-        "service.version",
-    ]
-
-    // Generated metrics data is in OTLP format. We send this data to the OpenTelemetry Prometheus exporter to ensure
-    // it gets transformed into Prometheus format data.
-    output {
-        metrics = [otelcol.exporter.prometheus.tracemetrics.input]
-    }
-}
-
-// The OpenTelemetry Prometheus exporter will transform incoming OTLP metrics data into Prometheus format data.
-otelcol.exporter.prometheus "tracemetrics" {
-    // Forward to our local Prometheus remote writer which will send the metrics to Mimir.
-    forward_to = [prometheus.remote_write.metrics_service.receiver]
+otelcol.auth.basic "grafana_cloud" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.auth.basic/
+	username = env("GRAFANA_CLOUD_INSTANCE_ID")
+	password = env("GRAFANA_CLOUD_API_KEY")
 }

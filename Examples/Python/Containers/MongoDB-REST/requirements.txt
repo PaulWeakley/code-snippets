@@ -9,4 +9,9 @@ opentelemetry-exporter-otlp
 opentelemetry-exporter-otlp-proto-http
 opentelemetry-distro[otlp]
 opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-logging
 requests
+opentelemetry-distro
+opentelemetry-exporter-otlp
+autodynatrace
+oneagent-sdk
