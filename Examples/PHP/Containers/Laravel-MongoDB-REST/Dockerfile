@@ -16,8 +16,6 @@ RUN apt-get update && apt-get install -y \
     && pecl install mongodb-1.20.0 \
     && docker-php-ext-enable mongodb \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
     
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -38,7 +36,10 @@ RUN composer install --no-dev --optimize-autoloader
 COPY ./default.conf /etc/nginx/conf.d/default.conf
 
 # Set permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Set up Supervisor to manage processes
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf

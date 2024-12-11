@@ -6,6 +6,3 @@ services:
       - '8080:80'
     env_file:
       - .env
-    volumes:
-      - .:/var/www/html
-      - ./php.ini:/usr/local/etc/php/conf.d/local-php.ini
