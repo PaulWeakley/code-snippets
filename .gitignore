@@ -1,5 +1,6 @@
 # VS Code
 **/*.vscode
+Helpers.md
 
 # CSharp
 **/*/bin

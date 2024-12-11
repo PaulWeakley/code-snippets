@@ -2,7 +2,8 @@
 
 namespace App\Services\MongoDB\REST;
 
-
+use function MongoDB\BSON\fromJSON;
+use MongoDB\Model\BSONDocument;
 use App\Services\MongoDB\CRUD\IMongoDB_CRUD_Client;
 use App\Services\MongoDB\REST\REST_Response;
 
@@ -59,7 +60,7 @@ class MongoDB_REST_Client
         return new REST_Response(200, "text/plain", "Document with id $id deleted");
     }
 
-    private static function verifyParameters(string $dbName, string $collectionName, string $id, bool $isIdRequired, $data, bool $isDataRequired)
+    private static function verifyParameters(string $dbName, string $collectionName, string $id, bool $isIdRequired, ?string $data, bool $isDataRequired)
     {
         if (empty($dbName)) {
             return self::badRequest("Exception: Missing db_name parameter");
@@ -109,7 +110,7 @@ class MongoDB_REST_Client
         }
     }
 
-    public function postAsync(string $dbName, string $collectionName, $data)
+    public function postAsync(string $dbName, string $collectionName, string $data)
     {
         try {
             $exception = self::verifyParameters($dbName, $collectionName, "", false, $data, true);
@@ -117,7 +118,7 @@ class MongoDB_REST_Client
                 return $exception;
             }
 
-            $documentId = $this->crud_client->createAsync($dbName, $collectionName, json_decode($data));
+            $documentId = $this->crud_client->createAsync($dbName, $collectionName, new BSONDocument(json_decode($data, true)));
             return $documentId !== null && !empty($documentId)
                 ? self::created($documentId)
                 : self::errorMessageFromString("Failed to create document");
@@ -126,7 +127,7 @@ class MongoDB_REST_Client
         }
     }
 
-    public function putAsync(string $dbName, string $collectionName, string $id, $data)
+    public function putAsync(string $dbName, string $collectionName, string $id, string $data)
     {
         try {
             $exception = self::verifyParameters($dbName, $collectionName, $id, true, $data, true);
@@ -135,7 +136,7 @@ class MongoDB_REST_Client
             }
 
             $objectId = $id;
-            $document = $this->crud_client->updateAsync($dbName, $collectionName, $objectId, json_decode($data));
+            $document = $this->crud_client->updateAsync($dbName, $collectionName, $objectId, new BSONDocument(json_decode($data, true)));
             if ($document !== null) {
                 return self::ok($document);
             }

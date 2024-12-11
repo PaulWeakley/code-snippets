@@ -1,23 +1,11 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MongoDB.CRUD.Client; // Add this at the top of the file
+using MongoDB.REST.Client;
 using MongoDB.Driver;
 using MongoDB.REST.Health;
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Serilog;
-using Serilog.Sinks.Grafana.Loki;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // MongoDB configuration
 var config = builder.Configuration;
@@ -34,90 +22,76 @@ var mongodb_connection_string = $"mongodb+srv://{mongoDbUsername}:{mongoDbPasswo
 builder.Services.AddSingleton(sp => MongoClientSettings.FromConnectionString(mongodb_connection_string));
 builder.Services.AddScoped<IMongoDB_Client_Builder, MongoDB_Client_Builder>();
 // Add controllers
-builder.Services.AddControllers();
 builder.Services.AddHealthChecks()
     .AddCheck<MongoDBHealthCheck>("mongodb")
     ;
-
-// Configure OpenTelemetry tracing
-var sourceName = "csharp-mongodb-rest-api";
-var serviceName = sourceName;
-var otlp_endpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
-var otlp_api_key = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_API_KEY");
-var loki_url = Environment.GetEnvironmentVariable("LOKI_URL");
-var loki_api_key = Environment.GetEnvironmentVariable("LOKI_API_KEY");
-Console.WriteLine($"OTLP Endpoint: {otlp_endpoint}");
-Console.WriteLine($"OTLP API Key: {otlp_api_key}");
-Console.WriteLine($"Loki URL: {loki_url}");
-Console.WriteLine($"Loki API Key: {loki_api_key}");
-
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracerProviderBuilder =>
-    {
-        tracerProviderBuilder
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddSource(sourceName)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService(serviceName))
-            .AddOtlpExporter(options =>
-            {
-                options.Endpoint = new Uri($"{otlp_endpoint}/v1/traces");
-                options.Headers = $"Authorization=Bearer {otlp_api_key}";
-                options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-            });
-    })
-    .WithMetrics(meterProviderBuilder =>
-    {
-        meterProviderBuilder
-            .AddAspNetCoreInstrumentation()
-            .AddRuntimeInstrumentation()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService(serviceName))
-            .AddOtlpExporter(options =>
-            {
-                options.Endpoint = new Uri($"{otlp_endpoint}/v1/metrics");
-                options.Headers = $"Authorization=Bearer {otlp_api_key}";
-                options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-            });
-    });
-
-// Configure Serilog
-builder.Host.UseSerilog((context, services, configuration) =>
-{
-    configuration
-        .MinimumLevel.Debug()
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.GrafanaLoki(loki_url!, credentials: new LokiCredentials
-        {
-            Password = loki_api_key!,
-        });
-});
-
+Console.WriteLine($"My native AOT application is starting.....");
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+static IResult ToActionResult(REST_Response response)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    return Results.Content(response.Body, response.ContentType, Encoding.UTF8, response.StatusCode);
 }
+
+MongoDB_REST_Client CreateMongoDBClient(IMongoDB_Client_Builder mongoDB_Client_Builder)
+{
+    return new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongoDB_Client_Builder));
+}
+
+app.MapGet("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, string db_name, string collection_name, string id) =>
+{
+    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var response = await client.GetAsync(db_name, collection_name, id);
+    return ToActionResult(response);
+});
+
+app.MapPost("api/mongodb/{db_name}/{collection_name}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name) =>
+{
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var response = await client.PostAsync(db_name, collection_name, body);
+    return ToActionResult(response);
+});
+
+app.MapPut("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name, string id) =>
+{
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var response = await client.PutAsync(db_name, collection_name, id, body);
+    return ToActionResult(response);
+});
+
+app.MapPatch("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name, string id) =>
+{
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var response = await client.PutAsync(db_name, collection_name, id, body);
+    return ToActionResult(response);
+});
+
+app.MapDelete("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, string db_name, string collection_name, string id) =>
+{
+    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var response = await client.DeleteAsync(db_name, collection_name, id);
+    return ToActionResult(response);
+});
 
 //app.UseHttpsRedirection();
 //app.UseAuthorization();
-app.MapControllers();
+//app.MapControllers();
 // Map health checks endpoint
 app.MapHealthChecks("/api/health", new HealthCheckOptions()
 {
-    ResponseWriter = async (context, report) => await context.Response.WriteAsJsonAsync(new HealthResults(report))
-});
-app.MapGet("/", () =>
-{
-    var meter = new Meter(sourceName);
-    var counter = meter.CreateCounter<int>("custom_metric_counter");
-    counter.Add(1);
-    Log.Information("Hello from .NET application!");
-    return "Hello, Grafana Loki with Serilog!";
+    ResponseWriter = async (context, report) => 
+    {
+        var jsonTypeInfo = HealthResultsJsonContext.Default.HealthResults;
+        await context.Response.WriteAsJsonAsync(new HealthResults(report), jsonTypeInfo);
+    }
 });
 app.Run();
+
+[JsonSerializable(typeof(HealthResults))]
+public partial class HealthResultsJsonContext : JsonSerializerContext{}

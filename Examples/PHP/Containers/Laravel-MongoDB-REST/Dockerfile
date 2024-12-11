@@ -9,14 +9,16 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    supervisor \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    libssl-dev \
+    sqlite3 libsqlite3-dev \
+    zip unzip git curl supervisor \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_sqlite \
+    && pecl install mongodb-1.20.0 \
+    && docker-php-ext-enable mongodb \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
+    
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

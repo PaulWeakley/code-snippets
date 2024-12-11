@@ -2,19 +2,17 @@
 
 namespace App\Services\MongoDB\CRUD;
 
-use MongoDB\Client;
-
 class MongoDB_Client_Builder implements IMongoDB_Client_Builder
 {
     private $connectionString;
 
-    public function __construct($connectionString)
+    public function __construct(MongoDB_Config $config)
     {
-        $this->connectionString = $connectionString;
+        $this->connectionString = $config->toUri();
     }
 
-    public function build(): IMongoDB_CRUD_Client
+    public function build(): \MongoDB\Client
     {
-        return new MongoDB_CRUD_Client(new \MongoDB\Client($this->connectionString));
+        return new \MongoDB\Client($this->connectionString);
     }
 }

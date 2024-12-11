@@ -8,25 +8,34 @@ use App\Services\MongoDB\CRUD;
 
 class MongoDB_REST_Controller extends Controller
 {
-    public function __construct()
+    private static $mongoDBClientBuilder;
+    private static function getMongoDBClientBuilder(): CRUD\MongoDB_Client_Builder
     {
-        // Initialize MongoDB client
-        
+        if (is_null(self::$mongoDBClientBuilder)) {
+            self::$mongoDBClientBuilder = new CRUD\MongoDB_Client_Builder(
+                new CRUD\MongoDB_Config(
+                    config('mongodb.username'),
+                    config('mongodb.password'),
+                    config('mongodb.server'),
+                    config('mongodb.retryWrites'),
+                    config('mongodb.w'),
+                    config('mongodb.appName')
+                )
+            );
+        }
+        return self::$mongoDBClientBuilder;
     }
+
     private function createMongoDBClient()
     {
         // Assuming MongoDB_REST_Client and MongoDB_CRUD_Client are defined elsewhere
-        return new REST\MongoDB_REST_Client(new CRUD\MongoDB_CRUD_Client(new CRUD\MongoDB_Client_Builder("")));
+        return new REST\MongoDB_REST_Client(new CRUD\MongoDB_CRUD_Client(self::getMongoDBClientBuilder()));
     }
 
-    private function toResponseEntity($response)
+    private function toResponseEntity($restResponse)
     {
-        return $response->then(function ($restResponse) {
-            return response($restResponse->getBody(), $restResponse->getStatusCode())
-                ->header('Content-Type', $restResponse->getContentType());
-        })->catch(function ($ex) {
-            return response("An error occurred: " . $ex->getMessage(), 500);
-        });
+        return response($restResponse->getBody(), $restResponse->getStatusCode())
+            ->header('Content-Type', $restResponse->getContentType());
     }
 
     /**
@@ -34,7 +43,7 @@ class MongoDB_REST_Controller extends Controller
      */
     public function store(Request $request, $db_name, $collection_name)
     {
-        return $this->toResponseEntity($this->createMongoDBClient()->postAsync($db_name, $collection_name, $request->Body));
+        return $this->toResponseEntity($this->createMongoDBClient()->postAsync($db_name, $collection_name, $request->getContent()));
     }
 
     /**
@@ -50,7 +59,7 @@ class MongoDB_REST_Controller extends Controller
      */
     public function update(Request $request, string $db_name, string $collection_name, string $id)
     {
-        return $this->toResponseEntity($this->createMongoDBClient()->putAsync($db_name, $collection_name, $id, $request->Body));
+        return $this->toResponseEntity($this->createMongoDBClient()->putAsync($db_name, $collection_name, $id, $request->getContent()));
     }
 
     /**
