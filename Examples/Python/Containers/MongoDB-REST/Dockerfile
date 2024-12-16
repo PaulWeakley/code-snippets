@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 # Set the working directory in the container
 WORKDIR /src
@@ -18,9 +18,13 @@ COPY .env /src/.env
 
 # Install Gunicorn
 RUN pip install gunicorn
+# Install Datadog's Python tracer
+RUN pip install ddtrace
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
 # Run the application with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+#CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["ddtrace-run", "gunicorn", "-b", "0.0.0.0:80", "app:app"]
+

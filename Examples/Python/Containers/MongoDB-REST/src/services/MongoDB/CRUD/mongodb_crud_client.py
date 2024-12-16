@@ -8,6 +8,12 @@ class MongoDB_CRUD_Client:
     def __init__(self, config: MongoDB_Config):
         self.__uri = config.to_uri()
         self.__client = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
     
     def __get_client(self):
         if self.__client is None:
@@ -21,6 +27,7 @@ class MongoDB_CRUD_Client:
         if self.__client is not None:
             self.__client.close()
             self.__client = None
+            print('Closed MongoDB client')
 
     def __get_collection(self, db_name, collection_name):
         client = self.__get_client()

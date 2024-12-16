@@ -3,7 +3,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-public class MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) : IMongoDB_CRUD_Client
+public class MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) : IMongoDB_CRUD_Client, IDisposable
 {
     private IMongoDB_Client_Builder MongoDBClientBuilder { get; } = mongoDBClientBuilder;
     private IMongoClient? MongoClient { get; set; }
@@ -13,6 +13,16 @@ public class MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) :
         if (null == MongoClient)
             MongoClient = MongoDBClientBuilder.Build();
         return MongoClient;
+    }
+
+    public void Dispose()
+    {
+        if (null != MongoClient)
+        {
+            MongoClient.Dispose();
+            MongoClient = null;
+        }
+        GC.SuppressFinalize(this);
     }
 
     public async Task Ping()

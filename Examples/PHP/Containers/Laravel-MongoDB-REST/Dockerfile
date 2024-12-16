@@ -12,11 +12,12 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     sqlite3 libsqlite3-dev \
     zip unzip git curl supervisor \
+    openssh-server \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_sqlite \
     && pecl install mongodb-1.20.0 \
     && docker-php-ext-enable mongodb \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-    
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -36,10 +37,8 @@ RUN composer install --no-dev --optimize-autoloader
 COPY ./default.conf /etc/nginx/conf.d/default.conf
 
 # Set permissions for Laravel
-# RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
 
 # Set up Supervisor to manage processes
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -56,8 +55,14 @@ RUN php artisan cache:clear || true && \
     php artisan view:clear && \
     php artisan optimize
 
-# Expose port 80
-EXPOSE 80
+# Configure SSH
+RUN mkdir /var/run/sshd && \
+    echo 'root:root' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 
-# Start Supervisor to manage Nginx and PHP-FPM
+# Expose ports
+EXPOSE 80 22
+
+# Start Supervisor to manage Nginx, PHP-FPM, and SSH
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

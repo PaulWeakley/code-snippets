@@ -5,13 +5,19 @@ using MongoDB.CRUD.Client;
 
 namespace MongoDB.REST.Client;
 
-public class MongoDB_REST_Client
+public class MongoDB_REST_Client : IDisposable
 {
     private readonly IMongoDB_CRUD_Client __crud_client;
 
     public MongoDB_REST_Client(IMongoDB_CRUD_Client mongodb_crud_client)
     {
         __crud_client = mongodb_crud_client;
+    }
+
+    public void Dispose()
+    {
+        __crud_client.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     static private JsonWriterSettings JsonWriterSettings => new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };

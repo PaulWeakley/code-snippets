@@ -5,11 +5,13 @@ import sys
 from typing import Optional, Any
 
 from src.services.MongoDB.CRUD.mongodb_crud_client import MongoDB_CRUD_Client
+from src.services.MongoDB.CRUD.mongodb_config import MongoDB_Config
 from .rest_response import REST_Response
 
 class MongoDB_REST_Client:
-    def __init__(self, mongodb_crud_client: MongoDB_CRUD_Client):
-        self.__crud_client = mongodb_crud_client
+    def __init__(self, mongodb_config: MongoDB_Config):
+        self.__mongodb_config = mongodb_config
+        self.__crud_client = None
 
     def __bad_request(self, message: str) -> REST_Response:
         return REST_Response(400, 'text/plain', message)
@@ -46,8 +48,14 @@ class MongoDB_REST_Client:
             return self.__bad_request('Error: Missing body')
         return None
     
+    def __get_client(self) -> MongoDB_CRUD_Client:
+        if self.__crud_client is None:
+            self.__crud_client = MongoDB_CRUD_Client(self.__mongodb_config)
+        return self.__crud_client
+    
     def ping(self):
-        self.__crud_client.ping()
+        with self.__get_client() as client:
+            client.ping()
 
     def get(self, db_name: Optional[str], collection_name: Optional[str], id: Optional[str]) -> REST_Response: 
         try:
@@ -55,7 +63,8 @@ class MongoDB_REST_Client:
             if error is not None:
                 return error
             
-            document = self.__crud_client.read(db_name, collection_name, ObjectId(id))
+            with self.__get_client() as client:
+                document = client.read(db_name, collection_name, ObjectId(id))
             if document is not None:
                 return self.__ok(document)
             return self.__not_found(id)
@@ -68,7 +77,8 @@ class MongoDB_REST_Client:
             if error is not None:
                 return error
             
-            document_id = self.__crud_client.create(db_name, collection_name, data)
+            with self.__get_client() as client:
+                document_id = client.create(db_name, collection_name, data)
             if document_id is not None:
                 return self.__created(document_id)
             return self.__error_message('Failed to create document')
@@ -81,7 +91,8 @@ class MongoDB_REST_Client:
             if error is not None:
                 return error
             
-            document = self.__crud_client.update(db_name, collection_name, ObjectId(id), data)
+            with self.__get_client() as client:
+                document = client.update(db_name, collection_name, ObjectId(id), data)
             if document is not None:
                 return self.__ok(document)
             return self.__not_found(id)
@@ -94,7 +105,8 @@ class MongoDB_REST_Client:
             if error is not None:
                 return error
             
-            result = self.__crud_client.delete(db_name, collection_name, ObjectId(id))
+            with self.__get_client() as client:
+                result = client.delete(db_name, collection_name, ObjectId(id))
             if result:
                 return self.__deleted(id)
             return self.__not_found(id)

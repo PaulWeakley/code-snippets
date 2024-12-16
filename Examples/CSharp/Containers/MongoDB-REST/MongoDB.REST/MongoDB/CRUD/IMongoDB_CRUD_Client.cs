@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.CRUD.Client;
 
-public interface IMongoDB_CRUD_Client
+public interface IMongoDB_CRUD_Client : IDisposable
 {
     Task Ping();
     Task<ObjectId?> CreateAsync(string dbName, string collectionName, BsonDocument document, CancellationToken cancellationToken = default);

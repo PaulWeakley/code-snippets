@@ -1,3 +1,9 @@
+import logging
+from ddtrace import patch_all
+from ddtrace import tracer
+from ddtrace.propagation import http as http_propagation
+from pythonjsonlogger import jsonlogger
+
 import configparser
 import os
 from dotenv import load_dotenv
@@ -9,6 +15,33 @@ from .services.MongoDB.CRUD.mongodb_config import MongoDB_Config
 
 from .controllers.health_controller import health_blueprint
 from .controllers.mongodb_rest_controller import mongodb_rest_blueprint
+
+patch_all()
+
+# Configure logging
+logger = logging.getLogger("my-flask-app")
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+
+# Use JSON logger for better compatibility with Datadog
+formatter = jsonlogger.JsonFormatter()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Function to add trace context to log records
+class TraceContextFilter(logging.Filter):
+    def filter(self, record):
+        context = tracer.current_span()
+        if context:
+            record.dd.trace_id = context.trace_id
+            record.dd.span_id = context.span_id
+        else:
+            record.dd = type("dd", (object,), {"trace_id": None, "span_id": None})()
+        return True
+
+# Add the filter to the logger
+logger.addFilter(TraceContextFilter())
 
 # Load environment variables
 config = configparser.ConfigParser()
@@ -28,7 +61,7 @@ def create_app():
     app = Flask(__name__)
 
     app.url_map.strict_slashes = False
-    app.mongodb_rest_client = MongoDB_REST_Client(mongodb_crud_client=MongoDB_CRUD_Client(mongodb_config))
+    app.mongodb_rest_client = MongoDB_REST_Client(mongodb_config)
 
     app.register_blueprint(health_blueprint, url_prefix='/api/health')
     app.register_blueprint(mongodb_rest_blueprint, url_prefix='/api/mongodb')
