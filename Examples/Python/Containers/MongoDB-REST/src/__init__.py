@@ -4,7 +4,6 @@ from ddtrace import tracer
 from ddtrace.propagation import http as http_propagation
 from pythonjsonlogger import jsonlogger
 
-import configparser
 import os
 from dotenv import load_dotenv
 from flask import Flask
@@ -44,24 +43,26 @@ class TraceContextFilter(logging.Filter):
 logger.addFilter(TraceContextFilter())
 
 # Load environment variables
-config = configparser.ConfigParser()
-config.read('config.ini')
 load_dotenv()
 
 mongodb_config = MongoDB_Config(
     server=os.getenv('MONGODB_SERVER'),
     username=os.getenv('MONGODB_USERNAME'),
     password=os.getenv('MONGODB_PASSWORD'),
-    retryWrites=config.get('MongoDB', 'retryWrites'),
-    w=config.get('MongoDB', 'w'),
-    appName=config.get('MongoDB', 'appName')
+    retryWrites=os.getenv('MONGODB_RETRYWRITES'),
+    writeConcern=os.getenv('MONGODB_WRITE_CONCERN'),
+    appName=os.getenv('MONGODB_APP_NAME'),
+    minPoolSize=os.getenv('MONGODB_MIN_POOL_SIZE'),
+    maxPoolSize=os.getenv('MONGODB_MAX_POOL_SIZE'),
+    waitQueueTimeoutMS=os.getenv('MONGODB_WAIT_QUEUE_TIMEOUT_MS')
 )
 
 def create_app():
     app = Flask(__name__)
 
     app.url_map.strict_slashes = False
-    app.mongodb_rest_client = MongoDB_REST_Client(mongodb_config)
+    MongoDB_CRUD_Client.set_config(mongodb_config)
+    app.mongodb_rest_client = MongoDB_REST_Client()
 
     app.register_blueprint(health_blueprint, url_prefix='/api/health')
     app.register_blueprint(mongodb_rest_blueprint, url_prefix='/api/mongodb')

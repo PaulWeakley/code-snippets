@@ -1,0 +1,6 @@
+# Terraform
+WEBSITES_PORT=80
+# Mongo
+MONGODB_SERVER=development.tovxj.mongodb.net
+MONGODB_USERNAME=paulweakley
+MONGODB_PASSWORD=p8aYxUCcw04Jt7TE

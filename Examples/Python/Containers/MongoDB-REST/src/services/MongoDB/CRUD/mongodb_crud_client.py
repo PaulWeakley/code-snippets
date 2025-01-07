@@ -5,20 +5,19 @@ from bson import ObjectId
 from .mongodb_config import MongoDB_Config
 
 class MongoDB_CRUD_Client:
-    def __init__(self, config: MongoDB_Config):
-        self.__uri = config.to_uri()
-        self.__client = None
+    __mongoDB_client: MongoClient = None
+
+    def set_config(config: MongoDB_Config):
+        MongoDB_CRUD_Client.__mongoDB_client = MongoClient(config.to_uri(), server_api=ServerApi('1'))
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        pass
     
     def __get_client(self):
-        if self.__client is None:
-            self.__client = MongoClient(self.__uri, server_api=ServerApi('1'))
-        return self.__client
+        return MongoDB_CRUD_Client.__mongoDB_client
 
     def ping(self):
         self.__get_client().admin.command('ping')

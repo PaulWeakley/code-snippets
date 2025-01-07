@@ -13,9 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install the python-dotenv package to load environment variables from .env file
 RUN pip install python-dotenv
 
-# Copy the .env file into the container
-COPY .env /src/.env
-
 # Install Gunicorn
 RUN pip install gunicorn
 # Install Datadog's Python tracer

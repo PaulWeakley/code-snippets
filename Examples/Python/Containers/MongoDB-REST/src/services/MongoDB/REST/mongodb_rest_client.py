@@ -9,9 +9,8 @@ from src.services.MongoDB.CRUD.mongodb_config import MongoDB_Config
 from .rest_response import REST_Response
 
 class MongoDB_REST_Client:
-    def __init__(self, mongodb_config: MongoDB_Config):
-        self.__mongodb_config = mongodb_config
-        self.__crud_client = None
+    def __init__(self):
+        self.__crud_client = MongoDB_CRUD_Client()
 
     def __bad_request(self, message: str) -> REST_Response:
         return REST_Response(400, 'text/plain', message)
@@ -49,8 +48,6 @@ class MongoDB_REST_Client:
         return None
     
     def __get_client(self) -> MongoDB_CRUD_Client:
-        if self.__crud_client is None:
-            self.__crud_client = MongoDB_CRUD_Client(self.__mongodb_config)
         return self.__crud_client
     
     def ping(self):

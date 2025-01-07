@@ -2,6 +2,9 @@
 **/*.vscode
 Helpers.md
 
+# Terraform
+**/*.terraform
+
 # CSharp
 **/*/bin
 **/*/obj
