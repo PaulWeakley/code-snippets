@@ -4,6 +4,13 @@ Helpers.md
 
 # Terraform
 **/*.terraform
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+*.tfout
+*.tflock
+*.terraform.lock.*
 
 # CSharp
 **/*/bin

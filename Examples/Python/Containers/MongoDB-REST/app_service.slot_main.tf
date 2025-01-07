@@ -2,18 +2,6 @@ locals {
   main_env_file_content = file("${path.module}/.env")
 }
 
-resource "azurerm_service_plan" "this_app" {
-  name                = "${var.app_service_name}-${local.location_suffix}-appserviceplan"
-  location            = var.location
-  resource_group_name = data.azurerm_resource_group.this_app.name
-  os_type             = "Linux"
-
-  sku_name = var.plan_sku
-
-  per_site_scaling_enabled = true
-  zone_balancing_enabled   = true
-}
-
 resource "azurerm_linux_web_app" "this_app_main" {
   name                = "${var.app_service_name}-${local.location_suffix}"
   location            = var.location

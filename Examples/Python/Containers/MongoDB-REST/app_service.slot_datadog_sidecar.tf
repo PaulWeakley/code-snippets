@@ -1,13 +1,10 @@
 locals {
-  telemetry_sidecar_env_file_content = file("${path.module}/.env sidecar")
+  telemetry_sidecar_env_file_content = file("${path.module}/.env-sidecar")
 }
 
 resource "azurerm_linux_web_app_slot" "this_app_telemetry_sidecar" {
   name                = "${azurerm_linux_web_app.this_app_main.name}-telemetry-slot"
-  location            = var.location
-  resource_group_name = data.azurerm_resource_group.this_app.name
-  service_plan_id     = azurerm_service_plan.this_app.id
-  parent_id           = azurerm_linux_web_app.this_app_main.id
+  app_service_id      = azurerm_linux_web_app.this_app_main.id
 
   site_config {
     application_stack {
@@ -18,9 +15,7 @@ resource "azurerm_linux_web_app_slot" "this_app_telemetry_sidecar" {
     }
   }
 
-  app_settings = tomap({
-    for line in split("\n", local.telemetry_sidecar_env_file_content) :
-    split("=", line)[0] => split("=", line)[1]
-    if line != "" && !startswith(line, "#")
-  })
+  app_settings = {
+    SLOT_TYPE = "Sidecar"
+  }
 }
