@@ -24,11 +24,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy Composer files
-COPY composer.json composer.lock artisan ./
-
 # Copy application files
-COPY . .
+COPY ./src .
 
 # Install dependencies without development packages
 RUN composer install --no-dev --optimize-autoloader
