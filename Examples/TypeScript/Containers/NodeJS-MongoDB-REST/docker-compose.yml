@@ -4,7 +4,5 @@ services:
     image: nodejs-typescript-mongodb-rest-api
     ports:
       - '3000:80'
-    environment:
-      - NODE_ENV=production
     env_file:
       - .env

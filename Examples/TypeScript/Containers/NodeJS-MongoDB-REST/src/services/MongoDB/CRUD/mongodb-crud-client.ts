@@ -1,41 +1,37 @@
 import { MongoClient, ServerApiVersion, MongoClientOptions, Collection, ObjectId } from 'mongodb';
-import IMongoDB_CRUD_Client_Builder from './imongodb-client-builder';
+import { env } from '../../../config/env';
+import MongoDB_Config from './mongodb-config';
 
-class MongoDB_CRUD_Client implements AsyncDisposable {
-    private __builder: IMongoDB_CRUD_Client_Builder;
-    private __client: MongoClient | null;
+class MongoDB_CRUD_Client {
+    private static __mongo_client: MongoClient;
 
-    constructor(builder: IMongoDB_CRUD_Client_Builder) {
-        this.__builder = builder;
-        this.__client = null;
-    }
-    
-    async [Symbol.asyncDispose](): Promise<void> {
-        await this.close();
-    }
-
-    private async __get_client(): Promise<MongoClient> {
-        if (this.__client === null) {
-            this.__client = this.__builder.get_client();
-            await this.__client.connect();
-        }
-        return this.__client;
+    static {
+        const mongodb_config = new MongoDB_Config(
+            env.MONGODB_USERNAME,
+            env.MONGODB_PASSWORD,
+            env.MONGODB_SERVER,
+            env.MONGODB_RETRY_WRITES === 'true',
+            env.MONGODB_WRITE_CONCERN,
+            env.MONGODB_APP_NAME,
+            parseInt(env.MONGODB_MIN_POOL_SIZE),
+            parseInt(env.MONGODB_MAX_POOL_SIZE),
+            parseInt(env.MONGODB_WAIT_QUEUE_TIMEOUT_MS)
+        );
+        MongoDB_CRUD_Client.__mongo_client = new MongoClient(mongodb_config.toUri());
+        MongoDB_CRUD_Client.__mongo_client.connect().then(() => {
+            console.log('MongoDB connected');
+        }).catch((error) => {
+            console.error('MongoDB connection error:', error);
+        });
     }
 
     public async ping(): Promise<void> {
-        const client = await this.__get_client();
+        const client = MongoDB_CRUD_Client.__mongo_client;
         await client.db('admin').command({ ping: 1 });
     }
 
-    public async close(): Promise<void> {
-        if (this.__client !== null) {
-            await this.__client.close();
-            this.__client = null;
-        }
-    }
-
     private async __get_collection(db_name: string, collection_name: string): Promise<Collection> {
-        const client = await this.__get_client();
+        const client = MongoDB_CRUD_Client.__mongo_client;
         return client.db(db_name).collection(collection_name);
     }
 

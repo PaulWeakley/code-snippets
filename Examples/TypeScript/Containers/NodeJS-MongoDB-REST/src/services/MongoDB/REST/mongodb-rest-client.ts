@@ -3,15 +3,11 @@ import MongoDB_CRUD_Client from '../CRUD/mongodb-crud-client';
 import REST_Response from './rest-response';
 
 
-class MongoDB_REST_Client implements AsyncDisposable {
+class MongoDB_REST_Client {
     private __crud_client: MongoDB_CRUD_Client;
 
     constructor(mongodb_crud_client: MongoDB_CRUD_Client) {
         this.__crud_client = mongodb_crud_client;
-    }
-    
-    async [Symbol.asyncDispose](): Promise<void> {
-        await this.__crud_client.close();
     }
 
     private __bad_request(message: string): REST_Response {

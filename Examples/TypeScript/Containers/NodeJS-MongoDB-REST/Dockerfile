@@ -8,7 +8,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy source code and build
-COPY . ./
+COPY ./index.ts ./tsconfig.json ./
+COPY ./src ./src
 RUN npm run build
 
 # Stage 2: Run the application
