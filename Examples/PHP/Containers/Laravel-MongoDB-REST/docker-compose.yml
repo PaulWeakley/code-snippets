@@ -7,5 +7,4 @@ services:
     env_file:
       - .env
     volumes:
-      - ./.env:/var/www/html/.env
       - ./src:/var/www/html
