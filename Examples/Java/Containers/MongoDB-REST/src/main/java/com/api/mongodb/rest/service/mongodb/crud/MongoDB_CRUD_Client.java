@@ -1,6 +1,7 @@
 package com.api.mongodb.rest.service.mongodb.crud;
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -11,18 +12,17 @@ import org.bson.types.ObjectId;
 import java.util.concurrent.CompletableFuture;
 
 public class MongoDB_CRUD_Client implements IMongoDB_CRUD_Client {
+    static private String _connectionString;
+    static private MongoClient _mongoClient;
 
-    private final IMongoDB_Client_Builder _mongoDBClientBuilder;
-    private MongoClient _mongoClient;
-
-    public MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) {
-        this._mongoDBClientBuilder = mongoDBClientBuilder;
+    static public void initialize(String connectionString) {
+        _connectionString = connectionString;
     }
 
-    private MongoClient getMongoClient() {
-        if (_mongoClient == null) 
-            _mongoClient = this._mongoDBClientBuilder.build();
-        return _mongoClient;
+    static private MongoClient getMongoClient() { 
+        if (null == _mongoClient)
+            _mongoClient = MongoClients.create(_connectionString);
+        return _mongoClient; 
     }
 
     private MongoCollection<BsonDocument> getCollection(String dbName, String collectionName) {

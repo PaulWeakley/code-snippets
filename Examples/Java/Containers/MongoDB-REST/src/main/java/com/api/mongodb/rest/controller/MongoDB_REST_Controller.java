@@ -14,17 +14,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/api/mongodb")
 public class MongoDB_REST_Controller {
 
-    private final IMongoDB_Client_Builder mongoDB_Client_Builder;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public MongoDB_REST_Controller(IMongoDB_Client_Builder mongoDB_Client_Builder, ObjectMapper objectMapper) {
-        this.mongoDB_Client_Builder = mongoDB_Client_Builder;
+    public MongoDB_REST_Controller(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     private MongoDB_REST_Client createMongoDBClient() {
-        return new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongoDB_Client_Builder));
+        return new MongoDB_REST_Client(new MongoDB_CRUD_Client());
     }
 
     private CompletableFuture<ResponseEntity<String>> toResponseEntity(CompletableFuture<REST_Response> response) {
@@ -48,8 +46,12 @@ public class MongoDB_REST_Controller {
     }
 
     @PutMapping("/{db_name}/{collection_name}/{id}")
-    @PatchMapping("/{db_name}/{collection_name}/{id}")
     public CompletableFuture<ResponseEntity<String>> put(@PathVariable String db_name, @PathVariable String collection_name, @PathVariable String id, @RequestBody Object body) throws Exception {
+        return toResponseEntity(createMongoDBClient().putAsync(db_name, collection_name, id, this.objectMapper.writeValueAsString(body)));
+    }
+
+    @PatchMapping("/{db_name}/{collection_name}/{id}")
+    public CompletableFuture<ResponseEntity<String>> patch(@PathVariable String db_name, @PathVariable String collection_name, @PathVariable String id, @RequestBody Object body) throws Exception {
         return toResponseEntity(createMongoDBClient().putAsync(db_name, collection_name, id, this.objectMapper.writeValueAsString(body)));
     }
 

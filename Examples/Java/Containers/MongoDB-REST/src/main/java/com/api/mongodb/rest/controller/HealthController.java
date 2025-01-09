@@ -18,16 +18,8 @@ import com.api.mongodb.rest.service.mongodb.rest.*;
 @RestController
 @RequestMapping("/api/health")
 public class HealthController {
-
-    private final IMongoDB_Client_Builder mongoDB_Client_Builder;
-
-    @Autowired
-    public HealthController(IMongoDB_Client_Builder mongoDB_Client_Builder) {
-        this.mongoDB_Client_Builder = mongoDB_Client_Builder;
-    }
-
     private MongoDB_REST_Client createMongoDBClient() {
-        return new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongoDB_Client_Builder));
+        return new MongoDB_REST_Client(new MongoDB_CRUD_Client());
     }
 
     private CompletableFuture<HealthResultEntry> buildHealthCheckMongoDB(MongoDB_REST_Client mongodb_rest_client) {

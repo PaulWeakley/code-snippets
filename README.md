@@ -53,3 +53,19 @@ dotnet publish -c Release -r linux-x64 --self-contained false
 docker network create shared_network
 
 
+# Environment Variables
+
+## Terraform
+WEBSITES_PORT=8080
+
+## Mongo
+MONGODB_SERVER=
+MONGODB_USERNAME=
+MONGODB_PASSWORD=
+MONGODB_APP_NAME=
+MONGODB_RETRY_WRITES=true
+MONGODB_WRITE_CONCERN=majority
+MONGODB_MIN_POOL_SIZE=10
+MONGODB_MAX_POOL_SIZE=50
+MONGODB_WAIT_QUEUE_TIMEOUT_MS=1000
+
