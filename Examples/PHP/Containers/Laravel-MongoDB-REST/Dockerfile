@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     sqlite3 libsqlite3-dev \
     zip unzip git curl supervisor \
-    openssh-server \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_sqlite \
     && pecl install mongodb-1.20.0 \
     && docker-php-ext-enable mongodb \
@@ -52,14 +51,24 @@ RUN php artisan cache:clear || true && \
     php artisan view:clear && \
     php artisan optimize
 
-# Configure SSH
-RUN mkdir /var/run/sshd && \
-    echo 'root:root' | chpasswd && \
-    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+# Start and enable SSH
+# Install SSH and setup environment
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends dialog openssh-server supervisor \
+    && mkdir -p /var/run/sshd \
+    && ssh-keygen -A \
+    && echo "root:Docker!" | chpasswd \
+    && chmod 600 /etc/ssh/ssh_host_* \
+    && chmod 644 /etc/ssh/sshd_config \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy SSH configuration file
+COPY sshd_config /etc/ssh/sshd_config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Expose SSH port for Azure
+EXPOSE 2222
 
 # Expose ports
-EXPOSE 80 22
+EXPOSE 80
 
-# Start Supervisor to manage Nginx, PHP-FPM, and SSH
+# Start Supervisor to manage Nginx, PHP-FPM
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
