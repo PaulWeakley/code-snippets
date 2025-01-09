@@ -4,7 +4,5 @@ services:
     image: csharp-mongodb-rest-api
     ports:
       - '7000:80'
-    environment:
-      - ASPNETCORE_URLS=http://+:80
     env_file:
       - .env

@@ -3,37 +3,18 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-public class MongoDB_CRUD_Client(IMongoDB_Client_Builder mongoDBClientBuilder) : IMongoDB_CRUD_Client, IDisposable
+public class MongoDB_CRUD_Client(IMongoClient mongoClient) : IMongoDB_CRUD_Client
 {
-    private IMongoDB_Client_Builder MongoDBClientBuilder { get; } = mongoDBClientBuilder;
-    private IMongoClient? MongoClient { get; set; }
-
-    private IMongoClient GetClient()
-    {
-        if (null == MongoClient)
-            MongoClient = MongoDBClientBuilder.Build();
-        return MongoClient;
-    }
-
-    public void Dispose()
-    {
-        if (null != MongoClient)
-        {
-            MongoClient.Dispose();
-            MongoClient = null;
-        }
-        GC.SuppressFinalize(this);
-    }
+    private IMongoClient MongoClient { get; } = mongoClient;
 
     public async Task Ping()
     {
-        await GetClient().GetDatabase("admin").RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
+        await MongoClient.GetDatabase("admin").RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
     }
 
     private IMongoCollection<BsonDocument> GetCollection(string dbName, string collectionName)
     {
-        var client = GetClient();
-        var database = client.GetDatabase(dbName);
+        var database = MongoClient.GetDatabase(dbName);
         return database.GetCollection<BsonDocument>(collectionName);
     }
 

@@ -8,19 +8,21 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // MongoDB configuration
-var config = builder.Configuration;
-var mongoDbSection = config.GetSection("MongoDB");
-var mongoDbServer = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? mongoDbSection.GetValue<string>("MONGODB_SERVER");
-var mongoDbUsername = Environment.GetEnvironmentVariable("MONGODB_USERNAME") ?? mongoDbSection.GetValue<string>("MONGODB_USERNAME");
-var mongoDbPassword = Environment.GetEnvironmentVariable("MONGODB_PASSWORD") ?? mongoDbSection.GetValue<string>("MONGODB_PASSWORD");
-var mongoDbAppName = mongoDbSection.GetValue<string>("appName");
-var mongoDbRetryWrites = mongoDbSection.GetValue<bool>("retryWrites");
-var mongoDbWriteConcern = mongoDbSection.GetValue<string>("w");
-var mongodb_connection_string = $"mongodb+srv://{mongoDbUsername}:{mongoDbPassword}@{mongoDbServer}/" + 
-        $"?retryWrites={mongoDbRetryWrites}&w={mongoDbWriteConcern}&appName={mongoDbAppName}";
+var mongodb_server = Environment.GetEnvironmentVariable("MONGODB_SERVER") ?? "localhost";
+var mongodb_username = Environment.GetEnvironmentVariable("MONGODB_USERNAME") ?? "root";
+var mongodb_password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD") ?? "password";
+var mongodb_retry_writes = Environment.GetEnvironmentVariable("MONGODB_RETRY_WRITES") ?? "true";
+var mongodb_write_concern = Environment.GetEnvironmentVariable("MONGODB_WRITE_CONCERN") ?? "majority";
+var mongodb_app_name = Environment.GetEnvironmentVariable("MONGODB_APP_NAME") ?? "MongoDB.REST";
+var mongodb_min_pool_size = Environment.GetEnvironmentVariable("MONGODB_MIN_POOL_SIZE") ?? "10";
+var mongodb_max_pool_size = Environment.GetEnvironmentVariable("MONGODB_MAX_POOL_SIZE") ?? "50";
+var mongodb_wait_queue_size = Environment.GetEnvironmentVariable("MONGODB_WAIT_QUEUE_SIZE") ?? "1000";
+
+var mongodb_connection_string = $"mongodb+srv://{mongodb_username}:{mongodb_password}@{mongodb_server}/" + 
+        $"?retryWrites={mongodb_retry_writes}&w={mongodb_write_concern}&appName={mongodb_app_name}" + 
+        $"&minPoolSize={mongodb_min_pool_size}&maxPoolSize={mongodb_max_pool_size}&waitQueueSize={mongodb_wait_queue_size}";
 // Dependency injection
-builder.Services.AddSingleton(sp => MongoClientSettings.FromConnectionString(mongodb_connection_string));
-builder.Services.AddScoped<IMongoDB_Client_Builder, MongoDB_Client_Builder>();
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(MongoClientSettings.FromConnectionString(mongodb_connection_string)));
 // Add controllers
 builder.Services.AddHealthChecks()
     .AddCheck<MongoDBHealthCheck>("mongodb")
@@ -33,48 +35,48 @@ static IResult ToActionResult(REST_Response response)
     return Results.Content(response.Body, response.ContentType, Encoding.UTF8, response.StatusCode);
 }
 
-MongoDB_REST_Client CreateMongoDBClient(IMongoDB_Client_Builder mongoDB_Client_Builder)
+MongoDB_REST_Client CreateMongoDBClient(IMongoClient mongoClient)
 {
-    return new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongoDB_Client_Builder));
+    return new MongoDB_REST_Client(new MongoDB_CRUD_Client(mongoClient));
 }
 
-app.MapGet("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, string db_name, string collection_name, string id) =>
+app.MapGet("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoClient mongoClient, string db_name, string collection_name, string id) =>
 {
-    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var client = CreateMongoDBClient(mongoClient);
     var response = await client.GetAsync(db_name, collection_name, id);
     return ToActionResult(response);
 });
 
-app.MapPost("api/mongodb/{db_name}/{collection_name}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name) =>
+app.MapPost("api/mongodb/{db_name}/{collection_name}", async (IMongoClient mongoClient, HttpContext context, string db_name, string collection_name) =>
 {
     using var reader = new StreamReader(context.Request.Body);
     var body = await reader.ReadToEndAsync();
-    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var client = CreateMongoDBClient(mongoClient);
     var response = await client.PostAsync(db_name, collection_name, body);
     return ToActionResult(response);
 });
 
-app.MapPut("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name, string id) =>
+app.MapPut("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoClient mongoClient, HttpContext context, string db_name, string collection_name, string id) =>
 {
     using var reader = new StreamReader(context.Request.Body);
     var body = await reader.ReadToEndAsync();
-    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var client = CreateMongoDBClient(mongoClient);
     var response = await client.PutAsync(db_name, collection_name, id, body);
     return ToActionResult(response);
 });
 
-app.MapPatch("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, HttpContext context, string db_name, string collection_name, string id) =>
+app.MapPatch("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoClient mongoClient, HttpContext context, string db_name, string collection_name, string id) =>
 {
     using var reader = new StreamReader(context.Request.Body);
     var body = await reader.ReadToEndAsync();
-    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var client = CreateMongoDBClient(mongoClient);
     var response = await client.PutAsync(db_name, collection_name, id, body);
     return ToActionResult(response);
 });
 
-app.MapDelete("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoDB_Client_Builder mongoDB_Client_Builder, string db_name, string collection_name, string id) =>
+app.MapDelete("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoClient mongoClient, string db_name, string collection_name, string id) =>
 {
-    var client = CreateMongoDBClient(mongoDB_Client_Builder);
+    var client = CreateMongoDBClient(mongoClient);
     var response = await client.DeleteAsync(db_name, collection_name, id);
     return ToActionResult(response);
 });

@@ -3,22 +3,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MongoDB.CRUD.Client;
+using MongoDB.Driver;
 using MongoDB.REST.Client;
 
 namespace MongoDB.REST.Health;
 
-public class MongoDBHealthCheck : IHealthCheck
+public class MongoDBHealthCheck(IMongoClient mongoClient) : IHealthCheck
 {
-    private readonly IMongoDB_Client_Builder _mongoDB_Client_Builder;
-
-    public MongoDBHealthCheck(IMongoDB_Client_Builder mongoDB_Client_Builder)
-    {
-        _mongoDB_Client_Builder = mongoDB_Client_Builder;
-    }
+    private IMongoClient MongoClient { get; } = mongoClient;
 
     private MongoDB_REST_Client CreateMongoDBClient()
     {
-        return new MongoDB_REST_Client(new MongoDB_CRUD_Client(_mongoDB_Client_Builder));
+        return new MongoDB_REST_Client(new MongoDB_CRUD_Client(MongoClient));
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(

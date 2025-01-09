@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y clang zlib1g-dev
 WORKDIR /src
 
 # Copy the project file and restore dependencies
-COPY ["MongoDB.REST.csproj", "./"]
-RUN dotnet restore "./MongoDB.REST.csproj"
+COPY ["MongoDB.REST/MongoDB.REST.csproj", "./"]
+RUN dotnet restore "MongoDB.REST.csproj"
 
 # Copy the entire source code and build the application
-COPY . .
+COPY ./MongoDB.REST .
 RUN dotnet publish "MongoDB.REST.csproj" -c Release -r linux-x64 --self-contained true /p:PublishAot=true -o /app/publish
 
 # Final stage: Use a newer Debian-based minimal runtime image
