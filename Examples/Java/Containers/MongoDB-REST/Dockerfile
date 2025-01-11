@@ -24,25 +24,25 @@ COPY --from=build /app/target/*.jar app.jar
 
 # Start and enable SSH
 # Install SSH and setup environment
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends dialog openssh-server supervisor \
-    && mkdir -p /var/run/sshd \
-    && ssh-keygen -A \
-    && echo "root:Docker!" | chpasswd \
-    && chmod 600 /etc/ssh/ssh_host_* \
-    && chmod 644 /etc/ssh/sshd_config \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update \
+#     && apt-get install -y --no-install-recommends dialog openssh-server supervisor \
+#     && mkdir -p /var/run/sshd \
+#     && ssh-keygen -A \
+#     && echo "root:Docker!" | chpasswd \
+#     && chmod 600 /etc/ssh/ssh_host_* \
+#     && chmod 644 /etc/ssh/sshd_config \
+#     && apt-get clean && rm -rf /var/lib/apt/lists/*
 # Copy SSH configuration file
-COPY sshd_config /etc/ssh/sshd_config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# COPY sshd_config /etc/ssh/sshd_config
+# COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose SSH port for Azure
-EXPOSE 2222
+# EXPOSE 2222
 
 # Expose the application's port
 EXPOSE 8080
 
 
 # Command to run the application with OpenTelemetry Java agent
-# CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]
 # Start Supervisor to run with SSH enabled
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+# CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
