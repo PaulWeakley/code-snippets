@@ -25,12 +25,20 @@ WORKDIR /var/www/html
 
 # Copy application files
 COPY ./src .
+# Delete local log files
+RUN rm -rf /var/www/html/storage/logs/*.log
+# Delete local db files
+RUN rm -rf /var/www/html/database/*.sqlite
 
 # Install dependencies without development packages
 RUN composer install --no-dev --optimize-autoloader
 
 # Copy Nginx configuration file
-COPY ./default.conf /etc/nginx/conf.d/default.conf
+COPY ./default.conf /etc/nginx/sites-enabled/default
+# MUST be removed to prevent Nginx from running the default site when 
+# "localhost" is in the default.conf as a server name but hosted in a domain (e.g. Azure)
+#RUN rm /etc/nginx/sites-enabled/default
+
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
@@ -38,6 +46,8 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # Set up Supervisor to manage processes
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy PHP-FPM configuration file
+# COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Create the SQLite database file
 RUN mkdir -p /var/www/html/database && \
@@ -48,24 +58,23 @@ RUN mkdir -p /var/www/html/database && \
 RUN php artisan cache:clear || true && \
     php artisan config:clear && \
     php artisan route:clear && \
-    php artisan view:clear && \
-    php artisan optimize
+    php artisan view:clear
+# Optimize occurs in supervisord so that environment variables are available
 
 # Start and enable SSH
 # Install SSH and setup environment
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends dialog openssh-server supervisor \
-    && mkdir -p /var/run/sshd \
-    && ssh-keygen -A \
-    && echo "root:Docker!" | chpasswd \
-    && chmod 600 /etc/ssh/ssh_host_* \
-    && chmod 644 /etc/ssh/sshd_config \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update \
+#     && apt-get install -y --no-install-recommends dialog openssh-server \
+#     && mkdir -p /var/run/sshd \
+#     && ssh-keygen -A \
+#     && echo "root:Docker!" | chpasswd \
+#     && chmod 600 /etc/ssh/ssh_host_* \
+#     && chmod 644 /etc/ssh/sshd_config \
+#     && apt-get clean && rm -rf /var/lib/apt/lists/*
 # Copy SSH configuration file
-COPY sshd_config /etc/ssh/sshd_config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# COPY sshd_config /etc/ssh/sshd_config
 # Expose SSH port for Azure
-EXPOSE 2222
+# EXPOSE 2222
 
 # Expose ports
 EXPOSE 80

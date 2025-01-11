@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Services\MongoDB\CRUD\MongoDB_Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,9 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(\MongoDB\Client::class, function ($app) {
-            return new \MongoDB\Client(MongoDB_Config::getInstance()->toUri());
-        });
+        //
     }
 
     /**

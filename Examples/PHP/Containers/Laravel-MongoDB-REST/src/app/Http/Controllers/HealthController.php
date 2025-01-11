@@ -34,7 +34,6 @@ class HealthController extends Controller
             $mongodbRestClient->ping();
             return new HealthResultEntry('mongodb', round((microtime(true) - $start) * 1000), 'healthy');
         } catch (Exception $e) {
-            print($e);
             return new HealthResultEntry('mongodb', round((microtime(true) - $start) * 1000), 'unhealthy', $e->getMessage());
         }
     }
@@ -50,7 +49,7 @@ class HealthController extends Controller
     {
         try {
             $healthCheckResponse = $this->buildHealthCheckResponse($this->getMongoDBClient());
-            return response()->json($healthCheckResponse->jsonSerialize());
+            return response()->json($healthCheckResponse->jsonSerialize(), $healthCheckResponse->isHealthy() ? 200 : 500);
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
