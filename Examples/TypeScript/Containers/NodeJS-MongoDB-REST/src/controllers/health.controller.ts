@@ -34,6 +34,6 @@ export class Health_Controller {
     async get(req: Request, res: Response) {
         const client = this.createMongoDBClient();
         const response = await this.buildHealthCheckResponse(client);
-        res.status(200).json(response);
+        res.status(response.healthy ? 200 : 500).json(response);
     }
 }

@@ -47,6 +47,7 @@ public class HealthController {
     @PostMapping()
     public ResponseEntity<HealthResults> getHealth() throws InterruptedException, ExecutionException {
         MongoDB_REST_Client client = createMongoDBClient();
-        return ResponseEntity.ok(buildHealthCheckResponse(client).get());
+        HealthResults healthResults = buildHealthCheckResponse(client).get();
+        return ResponseEntity.status(healthResults.isHealthy() ? 200 : 500).body(healthResults);
     }
 }

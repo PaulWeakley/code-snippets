@@ -25,6 +25,7 @@ def build_health_check_response(mongodb_rest_client: MongoDB_REST_Client) -> Hea
 @health_blueprint.route('/', methods=['GET', 'POST'])
 def health_check():
     try:
-        return jsonify(build_health_check_response(current_app.mongodb_rest_client).to_dict())
+        health_results = build_health_check_response(current_app.mongodb_rest_client)
+        return jsonify(build_health_check_response(current_app.mongodb_rest_client).to_dict()), 200 if health_results.healthy else 500
     except Exception as e:
         return str(e), 500
