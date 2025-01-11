@@ -22,15 +22,27 @@ COPY application.properties .
 COPY appsettings.json .
 COPY --from=build /app/target/*.jar app.jar
 
-# Install wget and download the Datadog Java agent
-# RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/* \
-# 	&& wget -O dd-java-agent.jar 'https://dtdg.co/latest-java-tracer'
-# Clean up wget
-# RUN apt-get remove -y wget && apt-get autoremove -y && apt-get clean
+# Start and enable SSH
+# Install SSH and setup environment
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends dialog openssh-server supervisor \
+    && mkdir -p /var/run/sshd \
+    && ssh-keygen -A \
+    && echo "root:Docker!" | chpasswd \
+    && chmod 600 /etc/ssh/ssh_host_* \
+    && chmod 644 /etc/ssh/sshd_config \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy SSH configuration file
+COPY sshd_config /etc/ssh/sshd_config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Expose SSH port for Azure
+EXPOSE 2222
 
 # Expose the application's port
 EXPOSE 8080
 
 
 # Command to run the application with OpenTelemetry Java agent
-CMD ["java", "-jar", "app.jar"]
+# CMD ["java", "-jar", "app.jar"]
+# Start Supervisor to run with SSH enabled
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
