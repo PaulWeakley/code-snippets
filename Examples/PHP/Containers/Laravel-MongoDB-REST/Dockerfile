@@ -35,10 +35,6 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Copy Nginx configuration file
 COPY ./default.conf /etc/nginx/sites-enabled/default
-# MUST be removed to prevent Nginx from running the default site when 
-# "localhost" is in the default.conf as a server name but hosted in a domain (e.g. Azure)
-#RUN rm /etc/nginx/sites-enabled/default
-
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
@@ -46,8 +42,6 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # Set up Supervisor to manage processes
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-# Copy PHP-FPM configuration file
-# COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Create the SQLite database file
 RUN mkdir -p /var/www/html/database && \
