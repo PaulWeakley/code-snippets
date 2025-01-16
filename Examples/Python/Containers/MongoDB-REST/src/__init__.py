@@ -8,6 +8,7 @@ from .services.MongoDB.CRUD.mongodb_config import MongoDB_Config
 
 from .controllers.health_controller import health_blueprint
 from .controllers.mongodb_rest_controller import mongodb_rest_blueprint
+from .controllers.telemetry_controller import telemetry_blueprint
 
 # Load environment variables
 load_dotenv()
@@ -33,5 +34,6 @@ def create_app():
 
     app.register_blueprint(health_blueprint, url_prefix='/api/health')
     app.register_blueprint(mongodb_rest_blueprint, url_prefix='/api/mongodb')
+    app.register_blueprint(telemetry_blueprint, url_prefix='/api/telemetry')
 
     return app

@@ -4,6 +4,9 @@ using MongoDB.REST.Client;
 using MongoDB.Driver;
 using MongoDB.REST.Health;
 using System.Text;
+using MongoDB.Bson;
+using System.Text.Json;
+using MongoDB.REST;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +84,65 @@ app.MapDelete("api/mongodb/{db_name}/{collection_name}/{id}", async (IMongoClien
     return ToActionResult(response);
 });
 
+app.MapPost("api/telemetry/{raw_start}", async (IMongoClient mongoClient, HttpContext context, double raw_start) =>
+{
+    DateTime start = DateTimeOffset.FromUnixTimeSeconds((long)raw_start).UtcDateTime
+            .AddMilliseconds((raw_start % 1) * 1000);
+    var containerTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0;
+    TimeSpan sslHandshake = DateTime.UtcNow - start;
+    var start_ref = DateTime.UtcNow;
+
+    var measure = DateTime.UtcNow;
+    using var reader = new StreamReader(context.Request.Body);
+    var body = BsonDocument.Parse(await reader.ReadToEndAsync());
+    TimeSpan deserialization = DateTime.UtcNow - measure;
+    
+    var db_name = "test";
+    var collection_name = "source";
+    measure = DateTime.UtcNow;
+    var client = new MongoDB_CRUD_Client(mongoClient);
+    var document_id = await client.CreateAsync(db_name, collection_name, body);
+    var createObject = DateTime.UtcNow - measure;
+    
+    measure = DateTime.UtcNow;
+    var document = await client.ReadAsync(db_name, collection_name, document_id.Value);
+    var getObject = DateTime.UtcNow - measure;
+
+    measure = DateTime.UtcNow;
+    var jsonData = document.ToJson();
+    TimeSpan serialization = DateTime.UtcNow - measure;
+
+    // High IOps operation
+    measure = DateTime.UtcNow;
+    for (int i = 0; i < 15; i++)
+        await client.UpdateAsync(db_name, collection_name, document_id.Value, new BsonDocument("time", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    TimeSpan highIOps = DateTime.UtcNow - measure;
+
+    // Delete the document
+    measure = DateTime.UtcNow;
+    await client.DeleteAsync(db_name, collection_name, document_id.Value);
+    TimeSpan deleteObject = DateTime.UtcNow - measure;
+    
+    TimeSpan total = DateTime.UtcNow - start_ref;
+
+    var telemetry = new Telemetry
+    {
+            Start = raw_start,
+            ContainerTime = containerTime,
+            SslHandshake = sslHandshake.TotalMilliseconds,
+            Deserialization = deserialization.TotalMilliseconds,
+            CreateObject = createObject.TotalMilliseconds,
+            GetObject = getObject.TotalMilliseconds,
+            Serialization = serialization.TotalMilliseconds,
+            HighIOps = highIOps.TotalMilliseconds,
+            deleteObject = deleteObject.TotalMilliseconds,
+            Total = total.TotalMilliseconds
+    };
+
+    var jsonTypeInfo = TelemetryJsonContext.Default.GetTypeInfo(telemetry.GetType());
+    return Results.Json(telemetry, jsonTypeInfo);
+});
+
 //app.UseHttpsRedirection();
 //app.UseAuthorization();
 //app.MapControllers();
@@ -97,3 +159,6 @@ app.Run();
 
 [JsonSerializable(typeof(HealthResults))]
 public partial class HealthResultsJsonContext : JsonSerializerContext{}
+
+[JsonSerializable(typeof(Telemetry))]
+public partial class TelemetryJsonContext : JsonSerializerContext{}

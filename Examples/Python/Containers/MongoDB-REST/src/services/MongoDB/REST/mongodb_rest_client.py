@@ -1,7 +1,5 @@
 import json
 from bson import ObjectId
-import os
-import sys
 from typing import Optional, Any
 
 from src.services.MongoDB.CRUD.mongodb_crud_client import MongoDB_CRUD_Client
@@ -48,6 +46,9 @@ class MongoDB_REST_Client:
         return None
     
     def __get_client(self) -> MongoDB_CRUD_Client:
+        return self.__crud_client
+    
+    def get_client(self) -> MongoDB_CRUD_Client:
         return self.__crud_client
     
     def ping(self):

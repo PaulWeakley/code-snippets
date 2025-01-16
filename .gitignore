@@ -4,6 +4,7 @@
 # VS Code
 **/*.vscode
 Helpers.md
+app_service.slot_datadog_sidecar.tf
 
 # Terraform
 **/*.terraform

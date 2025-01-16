@@ -13,4 +13,6 @@ Route::put('/mongodb/{db_name}/{collection_name}/{id}', [MongoDB_REST_Controller
 Route::patch('/mongodb/{db_name}/{collection_name}/{id}', [MongoDB_REST_Controller::class, 'update']);
 Route::delete('/mongodb/{db_name}/{collection_name}/{id}', [MongoDB_REST_Controller::class, 'destroy']);
 
+Route::post('/telemetry/{raw_start}', [\App\Http\Controllers\TelemetryController::class, 'index']);
+
 

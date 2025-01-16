@@ -13,13 +13,13 @@ variable "location" {
 variable "resource_group_name" {
     description = "Name of the resource group."
     type        = string
-    default     = "mongodbtest"
+    default     = "mongodb-test"
 }
 
 variable "acr_name" {
     description = "Name of the Azure Container Registry."
     type        = string
-    default     = "pythonmongodbrestapi"
+    default     = "mongodbtest"
 }
 
 variable "acr_image_name" {
