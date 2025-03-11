@@ -1,0 +1,9 @@
+services:
+  rust-mongodb-rest-api:
+    build: .
+    image: rust-mongodb-rest-api
+    ports:
+      - "2000:80"
+    env_file:
+      - .env
+    
