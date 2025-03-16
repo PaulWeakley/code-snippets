@@ -13,6 +13,7 @@ use crate::services::mongodb::rest::mongodb_rest_client::MongoDBRESTClient;
 
 use crate::controllers::health_controller;
 use crate::controllers::mongodb_rest_controller;
+use crate::controllers::telemetry_controller;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -54,6 +55,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state.clone())
             .configure(health_controller::configure)
             .configure(mongodb_rest_controller::configure)
+            .configure(telemetry_controller::configure)
     })
     .bind(("0.0.0.0", port))?
     .run()

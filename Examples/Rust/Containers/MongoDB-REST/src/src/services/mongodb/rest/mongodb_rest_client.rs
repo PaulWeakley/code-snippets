@@ -15,7 +15,7 @@ impl MongoDBRESTClient {
         }
     }
 
-    fn get_client(&self) -> &MongoDBCRUDClient {
+    pub fn get_client(&self) -> &MongoDBCRUDClient {
         self.crud_client.as_ref().expect("MongoDB CRUD client is not set")
     }
 

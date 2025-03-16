@@ -25,7 +25,7 @@ variable "acr_name" {
 variable "acr_image_name" {
     description = "Name of the ACR image."
     type        = string
-    default     = "python-mongodb-rest-api"
+    default     = "rust-mongodb-rest-api"
 }
 
 variable "acr_tag" {
@@ -49,7 +49,7 @@ variable "acr_telemetry_sidecar_tag" {
 variable "app_service_name" {
     description = "Name of the App Service."
     type        = string
-    default     = "python-mongodb-rest-api"
+    default     = "rust-mongodb-rest-api"
 }
 
 variable "subscription_id" {
